@@ -1,4 +1,5 @@
 import React, {useEffect} from "react";
+import { useKmoContext } from './context';
 
 declare global {
     interface Window {
@@ -8,13 +9,18 @@ declare global {
 }
 
 const Main = () => {
+  const { folder, setFolder } = useKmoContext();
+  const { db, setDb } = useKmoContext();
+  // console.log(theme);
+
     const [dirHandle, setDirHandle] = React.useState<any>();
-    const [db, setDB] = React.useState<any>();
+    // const [db, setDB] = React.useState<any>();
     const main = React.createRef<HTMLInputElement>()
     const funfun = async () => {
         const dirHandleVar = await window.showDirectoryPicker();
         await dirHandler(dirHandleVar);
         await setDirHandle(dirHandleVar)
+        setFolder(dirHandleVar)
       }
     useEffect(() => {
         if(dirHandle){
@@ -23,7 +29,7 @@ const Main = () => {
                 r2.getFile()
                 .then((file:any)=>file.text())
                 .then((r2:any)=>{
-                    setDB(r2)
+                    setDb(r2)
                 });
             })
         }
@@ -33,8 +39,9 @@ const Main = () => {
         console.log(db);
                 
       }
-        
-    }, [db])
+      console.log('folder')
+      console.log(folder)
+    }, [db,folder])
     let directory:any = [];
       async function dirHandler(dirHandle:any) {
         // console.log(await (await dirHandle.getFileHandle('119d5e5ece3b102a7aaf06e9e96ebdf6.jpg')).getFile());
@@ -52,8 +59,8 @@ const Main = () => {
               img.classList.add('main-img')
               img.setAttribute('data-path',dirHandle.name + '/' + entry.name)
               main.current!.appendChild(img)
-        console.log(directory.join('/') + '/' + entry.name);
-        console.log((directory.join('/') + '/' + entry.name).split('/'));
+        // console.log(directory.join('/') + '/' + entry.name);
+        // console.log((directory.join('/') + '/' + entry.name).split('/'));
       } else {
             //   document.getElementById('code').innerHTML = i;i++;
             }
@@ -80,6 +87,13 @@ const Main = () => {
       }
     return (
         <div>
+          
+          <button onClick={() => setFolder('a')}>
+        switch to light theme
+      </button>
+      <button onClick={() => setFolder('Theme.Dark')}>
+        switch to dark theme
+      </button>
         <button onClick={funfun}>click</button>
         <button onClick={getNewFileHandle}>click</button>
         {JSON.stringify(db)}
