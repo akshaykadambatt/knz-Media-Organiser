@@ -1,7 +1,4 @@
 import React, {useEffect} from "react";
-import {useSelector, useDispatch} from 'react-redux'
-import {setFolderDirHandle, setDbFileHandle} from './redux'
-import { RootState } from './store'
 
 declare global {
     interface Window {
@@ -11,12 +8,6 @@ declare global {
 }
 
 const Main = () => {
-  const folder = useSelector((state: RootState) => state.handles.folder)
-  const database = useSelector((state: RootState) => state.handles.db)
-  const dispatch = useDispatch()
-  //use like () => dispatch(setFolderDirHandle(),obj)
-
-  
     const [dirHandle, setDirHandle] = React.useState<any>();
     const [db, setDB] = React.useState<any>();
     const main = React.createRef<HTMLInputElement>()
