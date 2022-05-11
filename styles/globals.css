@@ -14,3 +14,8 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.main-img{
+  height: 200px;
+  /* image-rendering: pixelated; */
+}
