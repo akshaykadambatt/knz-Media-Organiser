@@ -40,12 +40,12 @@ const Main = () => {
    */
   useEffect(() => {
     const init =async (dbHandle:FileSystemFileHandle) => {
-      let config = {
+      let config: object = {
         name: "My Gallery",
         folderName: dbHandle.name,
         tags:{}
       }
-      const writable = await dbHandle.createWritable();
+      const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: true });
       await writable.write(JSON.stringify(config));
       await writable.close();
     }
