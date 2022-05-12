@@ -29,7 +29,7 @@ const Main = () => {
     if(folder.name) getDbHandle(folder)
   
     return;
-  }, [folder])
+  }, [folder,setDb,setDbHandle])
   /**
    * onchange of dbFileHandle 
    * -> add kmo configuration block: 
