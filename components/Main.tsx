@@ -12,6 +12,7 @@ const Main = () => {
   const { folder, setFolder } = useKmoContext();
   const { dbHandle, setDbHandle } = useKmoContext();
   const { db, setDb } = useKmoContext();
+  const { filesFound, setFilesFound } = useKmoContext();
   //picker -> save folderDirHandle to state
   const openFolderDirHandle =async () => {
     const dirHandleVar:FileSystemDirectoryHandle = await window.showDirectoryPicker();
@@ -45,23 +46,64 @@ const Main = () => {
         folderName: dbHandle.name,
         tags:{}
       }
+      let filesData = await getFilesData(folder)
       const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: true });
       await writable.write(JSON.stringify(config));
+      await writable.write(JSON.stringify(filesData));
       await writable.close();
     }
     if(dbHandle.name) init(dbHandle)
 
     return;
-  }, [dbHandle])
+  }, [dbHandle,folder])
+
+  const getFilesData = async (folder: FileSystemDirectoryHandle) => {
+    let directory: string[] = [];
+    let data: any[] = [];
+    const folderHandler = async (folder: FileSystemDirectoryHandle) => {
+      directory.push(folder.name);
+      for await (const entry of folder.values()) {
+        if (entry.kind != "directory") {
+          var temp = entry.name.split('.').pop() || "";
+          var formats = ["jpg", "jpeg", "png", "gif", "webp"];
+          if (formats.includes(temp)) {
+            const fileHandle = await folder.getFileHandle(entry.name, {});
+            const file: File = await fileHandle.getFile();
+            let img = document.createElement('img');
+            img.src = URL.createObjectURL(file)
+            img.classList.add('main-img')
+            img.setAttribute('data-path', folder.name + '/' + entry.name)
+            // main.current!.appendChild(img)
+            // console.log(directory.join('/') + '/' + entry.name);
+            // console.log((directory.join('/') + '/' + entry.name).split('/'));
+            setFilesFound((filesFound: number) => filesFound + 1)
+            data.push({
+              path: directory.join('/') + '/' + entry.name,
+              tags: {
+                modifiedDate: file.lastModified
+              },
+              description: ""
+            });
+          }
+        } else if (entry.kind == "directory") await folderHandler(entry);
+      }
+      directory.pop()
+    }
+    await folderHandler(folder).then(()=>data)
+
+    return data
+  }
   
-setInterval(()=>{
-  // console.log((folder.name));
-  // console.log(Object.keys(folder).length === 0);
-  
-  // console.log(folder);
-  // console.log(dbHandle);
-  // console.log(db);
-},2000)
+  setInterval(()=>{
+    // setFilesFound(filesFound+1)
+
+    // console.log((folder.name));
+    // console.log(Object.keys(folder).length === 0);
+    
+    // console.log(folder);
+    // console.log(dbHandle);
+    // console.log(db);
+  },20)
     // const [dirHandle, setDirHandle] = React.useState<any>();
     // const [db, setDB] = React.useState<any>();
     const main = React.createRef<HTMLInputElement>()
@@ -91,58 +133,30 @@ setInterval(()=>{
     //   console.log('folder')
     //   console.log(folder)
     // }, [db,folder])
-    // let directory:any = [];
-    //   async function dirHandler(dirHandle:any) {
-    //     // console.log(await (await dirHandle.getFileHandle('119d5e5ece3b102a7aaf06e9e96ebdf6.jpg')).getFile());
-    //     directory.push(dirHandle.name);
-    //     for await (const entry of dirHandle.values()) {
-    //       if (entry.kind != "directory") {
-    //         var temp = entry.name.split('.').pop();
-    //         var formats = ["jpg", "jpeg", "png", "gif", "webp"];
-    //         let i=0;
-    //         if (formats.includes(temp)) {
-    //           const fileHandle = await dirHandle.getFileHandle(entry.name, {});
-    //           const file = await fileHandle.getFile();
-    //           let img = document.createElement('img');
-    //           img.src = URL.createObjectURL(file)
-    //           img.classList.add('main-img')
-    //           img.setAttribute('data-path',dirHandle.name + '/' + entry.name)
-    //           main.current!.appendChild(img)
-    //     // console.log(directory.join('/') + '/' + entry.name);
-    //     // console.log((directory.join('/') + '/' + entry.name).split('/'));
-    //   } else {
-    //         //   document.getElementById('code').innerHTML = i;i++;
-    //         }
-    //       } else if (entry.kind == "directory") {
-    //         await dirHandler(entry);
-    //       }
-    //     }
-    //     directory.pop(dirHandle.name)
-    //   }
-    //   async function getNewFileHandle() {
-    //     const options = {
-    //         suggestedName: 'db.json',
-    //       types: [
-    //         {
-    //           description: 'JSON File',
-    //           accept: {
-    //             'text/plain': ['.json'],
-    //           },
-    //         },
-    //       ],
-    //     };
-    //     const handle = await window.showSaveFilePicker(options);
-    //     return handle;
-    //   }
-    return (
-        <div>
-          
+    let directory: any = [];
+    
+      // async function getNewFileHandle() {
+      //   const options = {
+      //       suggestedName: 'db.json',
+      //     types: [
+      //       {
+      //         description: 'JSON File',
+      //         accept: {
+      //           'text/plain': ['.json'],
+      //         },
+      //       },
+      //     ],
+      //   };
+      //   const handle = await window.showSaveFilePicker(options);
+      //   return handle;
+      // }
+    return (<>
         <button onClick={openFolderDirHandle}>click</button>
         {/* <button onClick={getNewFileHandle}>click</button> */}
         {JSON.stringify(db)}
+        {filesFound}
         <div ref={main}></div>
-        </div>
-    )
+    </>)
 }
 
 export default Main

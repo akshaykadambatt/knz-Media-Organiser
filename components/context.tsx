@@ -9,6 +9,8 @@ export type KmoContextType = {
     setDbHandle: (Handle: FileSystemFileHandle) => void;
     db: string;
     setDb: (Data: string) => void;
+    filesFound: number;
+    setFilesFound: (Data: number) => void;
 }
 
 export const KmoContext = createContext<KmoContextType>({ 
@@ -17,6 +19,8 @@ export const KmoContext = createContext<KmoContextType>({
     dbHandle: {} as FileSystemFileHandle, 
     setDbHandle: folder => console.warn('no dbHandle provider'),
     db: "", 
-    setDb: folder => console.warn('no db provider')
+    setDb: folder => console.warn('no db provider'),
+    filesFound: 0, 
+    setFilesFound: folder => console.warn('no db provider')
 });
 export const useKmoContext = () => useContext(KmoContext);
