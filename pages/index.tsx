@@ -1,8 +1,8 @@
 import React from 'react';
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Main from './components/Main'
-import { KmoContext } from './components/context';
+import Main from '../components/Main'
+import { KmoContext } from '../components/context';
 
 const Home: NextPage = () => {
   const [folder, setFolder] = React.useState({} as FileSystemDirectoryHandle);
