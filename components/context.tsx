@@ -11,6 +11,11 @@ export type KmoContextType = {
     setDb: (Data: string) => void;
     filesFound: number;
     setFilesFound: Dispatch<SetStateAction<number>>;
+    viewer: boolean;
+    setViewer: (Data: boolean) => void;
+    file: string;
+    setFile: (Data: string) => void;
+    getFileRecursively: any
 }
 
 export const KmoContext = createContext<KmoContextType>({ 
@@ -21,6 +26,11 @@ export const KmoContext = createContext<KmoContextType>({
     db: "", 
     setDb: folder => console.warn('no db provider'),
     filesFound: 0, 
-    setFilesFound: folder => console.warn('no db provider')
+    setFilesFound: folder => console.warn('no db provider'),
+    viewer: false, 
+    setViewer: folder => console.warn('no db provider'),
+    file: "", 
+    setFile: folder => console.warn('no db provider'),
+    getFileRecursively: () => console.warn('no db provider')
 });
 export const useKmoContext = () => useContext(KmoContext);

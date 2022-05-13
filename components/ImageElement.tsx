@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, SetStateAction } from 'react';
 import { useKmoContext } from './context';
 
 export const ImageElement = (imageProps:any) => {
-  const { folder, setFolder } = useKmoContext();
+  const { folder, setFolder,getFileRecursively } = useKmoContext();
   const [shouldLoad, setShouldLoad] = useState(false);
   const [src, setSrc] = useState("");
   const placeholderRef = useRef(null);
@@ -14,7 +14,10 @@ export const ImageElement = (imageProps:any) => {
           let path = imageProps['data-path'].split('/')
           path.shift()
           getFileRecursively(path, folder)
-          
+          .then((r: SetStateAction<string>)=>{
+            setSrc(r)
+            setShouldLoad(true)
+          })
         }
       });
       observer.observe(placeholderRef.current);
@@ -22,22 +25,7 @@ export const ImageElement = (imageProps:any) => {
     }
   }, [shouldLoad, placeholderRef]);
 
-  const getFileRecursively = async (path: string[], folderToLookIn: FileSystemDirectoryHandle) => {
-    let dir:string = path.shift() || "";
-    console.log(dir);
-    
-    if(path.length == 0){
-      let fileHandle = await folderToLookIn.getFileHandle(dir, {})
-      const file = await fileHandle.getFile()
-      console.log(URL.createObjectURL(file));
-      setSrc(URL.createObjectURL(file))
-      setShouldLoad(true);
-    }else{
-      let newFolder = await folderToLookIn.getDirectoryHandle(dir,{create: true})
-      getFileRecursively(path, newFolder)
-    }
-    
-  }
+  
 
   return (shouldLoad 
     ? <img src={src} {...imageProps}/> 

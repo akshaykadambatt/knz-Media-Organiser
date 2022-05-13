@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap');
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+  font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
@@ -39,4 +41,28 @@ a {
   background: grey;
   width: 100%;
   height: 100%;
+}
+.image-viewer{
+  height: 100vh;
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    background: linear-gradient(0deg, #000000, #000000e8);
+}
+.image-viewer-image-holder{
+  display: flex;
+  height: inherit;
+  justify-content: center;
+}
+.image-viewer-image{
+  height: 100vh;
+  width: auto;
+}
+
+.image-viewer-top-bar{
+  position: fixed;
+  width: inherit;
+  background: linear-gradient(180deg, #0000008a, #00000000);
 }

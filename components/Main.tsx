@@ -1,7 +1,15 @@
 import React, {useEffect,useState} from "react";
 import { useKmoContext } from './context';
 import {ImageElement} from './ImageElement';
-
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import {ImageViewer} from "./ImageViewer"
 declare global {
     interface Window {
         showDirectoryPicker:any;
@@ -11,10 +19,14 @@ declare global {
 
 const Main = () => {
   const [items, setItems] = useState({});
-  const { folder, setFolder } = useKmoContext();
-  const { dbHandle, setDbHandle } = useKmoContext();
-  const { db, setDb } = useKmoContext();
-  const { filesFound, setFilesFound } = useKmoContext();
+  const { 
+    folder, setFolder, 
+    dbHandle, setDbHandle, 
+    db, setDb, 
+    filesFound, setFilesFound,
+    viewer, setViewer,
+    file, setFile
+  } = useKmoContext();
   //picker -> save folderDirHandle to state
   const openFolderDirHandle =async () => {
     const dirHandleVar:FileSystemDirectoryHandle = await window.showDirectoryPicker();
@@ -59,7 +71,7 @@ const Main = () => {
         filesData
       }
     }
-    const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: true });
+    const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: false });
     await writable.write(JSON.stringify(database));
     await writable.close();
     getDbHandle(folder)
@@ -94,32 +106,76 @@ const Main = () => {
     return Object.assign({}, data)
   }
   useEffect(() => {
-    if(db) createElements(db)
+    // while (main.current?.firstChild) {
+    //   main.current?.removeChild(main.current?.firstChild);
+    // }
+    if(db) {
+      createElements(db)
+    }
     return;
   }, [db])
   const createElements = (db: string) => {
     let data = JSON.parse(db);
     setItems(data.data.filesData)
-    for (let key in data.data.filesData) {
-      let item = data.data.filesData[key]
-    }
+    // for (let key in data.data.filesData) {
+    //   let item = data.data.filesData[key]
+    // }
     return;
   }
   const main = React.createRef<HTMLInputElement>()
   const refreshDatabase = () => {
+    setFilesFound(0)
+    init(dbHandle)
   }
 
   return (<>
-      <button onClick={openFolderDirHandle}>open folder</button>
-      <button onClick={refreshDatabase}>refresh</button>
-      {filesFound}
+      {db&&
+      <>
+        <Typography variant="h2" pt={3} >{JSON.parse(db)?.config?.name}</Typography>
+        <Typography gutterBottom>
+          Last refreshed: 
+          <code>
+            {(new Date(JSON.parse(db)?.config?.modifiedDate || 1))
+            .toISOString().slice(0, 19).replace(/-/g, "/").replace("T", " ")}
+          </code>
+        </Typography>
+      </>
+      }
+      
+      <Stack spacing={2} pt={3} direction="row">
+      <Button variant="contained" onClick={openFolderDirHandle}>Set Folder</Button>
+      <Button variant="contained" onClick={refreshDatabase}>
+         {filesFound != 0? "Analyzed "+filesFound:"Refresh"}
+      </Button>
+      <Button variant="contained" onClick={openFolderDirHandle}>Add new tags</Button>
+      <TextField size="small" label="Search" variant="outlined" />
+      <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+      <InputLabel id="demo-select-small">Age</InputLabel>
+      <Select
+        labelId="demo-select-small"
+        id="demo-select-small"
+        label="Age"
+      >
+        <MenuItem value="">
+          <em>None</em>
+        </MenuItem>
+        <MenuItem value={10}>Ten</MenuItem>
+        <MenuItem value={20}>Twenty</MenuItem>
+        <MenuItem value={30}>Thirty</MenuItem>
+      </Select>
+    </FormControl>
+      </Stack>
+      <br></br>
+      <ImageViewer open={viewer} file={file}/>
+      <br></br>
       <div ref={main} className="imageItemWrapper">
       {Object.entries(items).map(([key, value]: any) => (
-        <div key={key} className="imageItem">
+        <div key = {key} className = "imageItem">
           <ImageElement 
-          data-path={value.path} 
-          data-description={value.description}
-          data-modifiedDate={value.tags.modifiedDate}
+          data-path = {value.path} 
+          data-description = {value.description}
+          data-modifieddate = {value.tags.modifiedDate}
+          onClick = {()=>{setViewer(true);setFile(value.path);}}
            />
         </div>
       ))}
