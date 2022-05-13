@@ -1,5 +1,6 @@
-import React, {useEffect} from "react";
+import React, {useEffect,useState} from "react";
 import { useKmoContext } from './context';
+import {ImageElement} from './ImageElement';
 
 declare global {
     interface Window {
@@ -9,6 +10,7 @@ declare global {
 }
 
 const Main = () => {
+  const [items, setItems] = useState({});
   const { folder, setFolder } = useKmoContext();
   const { dbHandle, setDbHandle } = useKmoContext();
   const { db, setDb } = useKmoContext();
@@ -20,17 +22,18 @@ const Main = () => {
   }
   //create kmo_db.json -> save dbFileHandle to state
   useEffect(() => {
-    const getDbHandle = async (folder:FileSystemDirectoryHandle) => {
-      folder.getFileHandle('db.json', { create: true })
-      .then(fileHandle => {
-        setDbHandle(fileHandle)
-        fileHandle.getFile().then(file => file.text()).then(fileText => setDb(fileText));
-      })
-    } 
     if(folder.name) getDbHandle(folder)
-  
     return;
   }, [folder,setDb,setDbHandle])
+  const getDbHandle = async (folder:FileSystemDirectoryHandle) => {
+    folder.getFileHandle('db.json', { create: true })
+    .then(fileHandle => {
+      fileHandle.getFile().then(file => file.text()).then(fileText => {
+          setDb(fileText)
+          setDbHandle(fileHandle)
+        });
+    })
+  } 
   /**
    * onchange of dbFileHandle 
    * -> add kmo configuration block: 
@@ -40,23 +43,27 @@ const Main = () => {
    * {name:"",tags:{dateModified:"",...},description:""}
    */
   useEffect(() => {
-    const init =async (dbHandle:FileSystemFileHandle) => {
-      let config: object = {
-        name: "My Gallery",
-        folderName: dbHandle.name,
-        tags:{}
-      }
-      let filesData = await getFilesData(folder)
-      const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: true });
-      await writable.write(JSON.stringify(config));
-      await writable.write(JSON.stringify(filesData));
-      await writable.close();
-    }
-    if(dbHandle.name) init(dbHandle)
-
+    if(dbHandle.name && JSON.parse(db || "{}")?.config?.modifiedDate === undefined) init(dbHandle)
     return;
   }, [dbHandle,folder])
-
+  const init =async (dbHandle:FileSystemFileHandle) => {
+    let filesData = await getFilesData(folder)
+    let database: object = {
+      config:{
+        name: "My Gallery",
+        folderName: dbHandle.name,
+        tags:{},
+        modifiedDate: + new Date()
+      },
+      data:{
+        filesData
+      }
+    }
+    const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: true });
+    await writable.write(JSON.stringify(database));
+    await writable.close();
+    getDbHandle(folder)
+  }
   const getFilesData = async (folder: FileSystemDirectoryHandle) => {
     let directory: string[] = [];
     let data: any[] = [];
@@ -69,18 +76,12 @@ const Main = () => {
           if (formats.includes(temp)) {
             const fileHandle = await folder.getFileHandle(entry.name, {});
             const file: File = await fileHandle.getFile();
-            let img = document.createElement('img');
-            img.src = URL.createObjectURL(file)
-            img.classList.add('main-img')
-            img.setAttribute('data-path', folder.name + '/' + entry.name)
-            // main.current!.appendChild(img)
-            // console.log(directory.join('/') + '/' + entry.name);
-            // console.log((directory.join('/') + '/' + entry.name).split('/'));
             setFilesFound((filesFound: number) => filesFound + 1)
             data.push({
               path: directory.join('/') + '/' + entry.name,
               tags: {
-                modifiedDate: file.lastModified
+                modifiedDate: file.lastModified,
+                newTag: "fdas"
               },
               description: ""
             });
@@ -90,73 +91,40 @@ const Main = () => {
       directory.pop()
     }
     await folderHandler(folder).then(()=>data)
-
-    return data
+    return Object.assign({}, data)
   }
-  
-  setInterval(()=>{
-    // setFilesFound(filesFound+1)
+  useEffect(() => {
+    if(db) createElements(db)
+    return;
+  }, [db])
+  const createElements = (db: string) => {
+    let data = JSON.parse(db);
+    setItems(data.data.filesData)
+    for (let key in data.data.filesData) {
+      let item = data.data.filesData[key]
+    }
+    return;
+  }
+  const main = React.createRef<HTMLInputElement>()
+  const refreshDatabase = () => {
+  }
 
-    // console.log((folder.name));
-    // console.log(Object.keys(folder).length === 0);
-    
-    // console.log(folder);
-    // console.log(dbHandle);
-    // console.log(db);
-  },20)
-    // const [dirHandle, setDirHandle] = React.useState<any>();
-    // const [db, setDB] = React.useState<any>();
-    const main = React.createRef<HTMLInputElement>()
-    // const funfun = async () => {
-    //     const dirHandleVar = await window.showDirectoryPicker();
-    //     await dirHandler(dirHandleVar);
-    //     await setDirHandle(dirHandleVar)
-    //     setFolder(dirHandleVar)
-    //   }
-    // useEffect(() => {
-    //     if(dirHandle){
-    //         dirHandle.getFileHandle('db.json', { create: true })
-    //         .then((r2:any)=>{
-    //             r2.getFile()
-    //             .then((file:any)=>file.text())
-    //             .then((r2:any)=>{
-    //                 setDb(r2)
-    //             });
-    //         })
-    //     }
-    // }, [dirHandle])
-    // useEffect(() => {
-    //   if(db && db!=""){
-    //     console.log(db);
-                
-    //   }
-    //   console.log('folder')
-    //   console.log(folder)
-    // }, [db,folder])
-    let directory: any = [];
-    
-      // async function getNewFileHandle() {
-      //   const options = {
-      //       suggestedName: 'db.json',
-      //     types: [
-      //       {
-      //         description: 'JSON File',
-      //         accept: {
-      //           'text/plain': ['.json'],
-      //         },
-      //       },
-      //     ],
-      //   };
-      //   const handle = await window.showSaveFilePicker(options);
-      //   return handle;
-      // }
-    return (<>
-        <button onClick={openFolderDirHandle}>click</button>
-        {/* <button onClick={getNewFileHandle}>click</button> */}
-        {JSON.stringify(db)}
-        {filesFound}
-        <div ref={main}></div>
-    </>)
+  return (<>
+      <button onClick={openFolderDirHandle}>open folder</button>
+      <button onClick={refreshDatabase}>refresh</button>
+      {filesFound}
+      <div ref={main} className="imageItemWrapper">
+      {Object.entries(items).map(([key, value]: any) => (
+        <div key={key} className="imageItem">
+          <ImageElement 
+          data-path={value.path} 
+          data-description={value.description}
+          data-modifiedDate={value.tags.modifiedDate}
+           />
+        </div>
+      ))}
+      </div>
+  </>)
 }
 
 export default Main

@@ -15,7 +15,28 @@ a {
   box-sizing: border-box;
 }
 
-.main-img{
-  height: 200px;
+.imageItem{
+  height: 25vw;
+  width: 100%;
+  border: 1px solid #dfdfdf;
+  border-radius: 4px;
   /* image-rendering: pixelated; */
+}
+.imageItem img{
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-position: 50% 21%;
+}
+.imageItemWrapper{
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 5px;
+  justify-items: center;
+}
+
+.img-placeholder{
+  background: grey;
+  width: 100%;
+  height: 100%;
 }
