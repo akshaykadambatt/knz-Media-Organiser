@@ -1,14 +1,14 @@
-import React from 'react';
+import React, {useState,Dispatch, SetStateAction} from 'react';
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Main from '../components/Main'
 import { KmoContext } from '../components/context';
 
 const Home: NextPage = () => {
-  const [folder, setFolder] = React.useState({} as FileSystemDirectoryHandle);
-  const [dbHandle, setDbHandle] = React.useState({} as FileSystemFileHandle);
-  const [db, setDb] = React.useState("");
-  const [filesFound, setFilesFound] = React.useState(0);
+  const [folder, setFolder] = useState({} as FileSystemDirectoryHandle);
+  const [dbHandle, setDbHandle] = useState({} as FileSystemFileHandle);
+  const [db, setDb] = useState("");
+  const [filesFound, setFilesFound] = useState(0 as number);
   
   return (
     <>

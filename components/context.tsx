@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, Dispatch, SetStateAction } from 'react';
 
 
 
@@ -10,7 +10,7 @@ export type KmoContextType = {
     db: string;
     setDb: (Data: string) => void;
     filesFound: number;
-    setFilesFound: (Data: number) => void;
+    setFilesFound: Dispatch<SetStateAction<number>>;
 }
 
 export const KmoContext = createContext<KmoContextType>({ 
