@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import Image from "next/image"
 
 export const ImageViewer = (imageProps:any) => {
   const { folder, setFolder, getFileRecursively, viewer, setViewer } = useKmoContext();
@@ -21,7 +22,7 @@ export const ImageViewer = (imageProps:any) => {
         setSrc(r)
       })
     }
-  }, [viewer]);
+  }, [viewer, folder, getFileRecursively, imageProps]);
   const close = () => {
     setViewer(false)
     setSrc("")
@@ -45,7 +46,7 @@ export const ImageViewer = (imageProps:any) => {
         <Grid container spacing={2} sx={{flexDirection: "row",flexWrap: "nowrap"}}>
           <Grid item xs={sidebar? 9:12} sx={{transition: "all cubic-bezier(0.79, 0.32, 0.33, 0.83)  0.7s",overflow:"hidden"}}>
             <Box className="image-viewer-image-holder">
-              <img className="image-viewer-image" src={src} {...imageProps}/>
+              <Image className="image-viewer-image" src={src} {...imageProps} alt=""/>
             </Box>
           </Grid>
             <Grid item xs={sidebar? 4:1}  sx={{
@@ -56,9 +57,9 @@ export const ImageViewer = (imageProps:any) => {
               }}>
               <Box pt={10} className="image-viewer-sidebar" sx={{width: "25vw !important"}}>
                 <Typography>
-                  I'm trying to make the text 100% height of a div but it doesn't work.
+                  I&apos;m trying to make the text 100% height of a div but it doesn&apos;t work.
                   It just becomes 100% of the body Is there any way to make it follow the div height?
-                  The div height is 4% of the whole page and I wan't the text to follow it when you resize/change resolution.
+                  The div height is 4% of the whole page and I wan&apos;t the text to follow it when you resize/change resolution.
                 </Typography>
               </Box>
             </Grid>

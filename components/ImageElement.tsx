@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, SetStateAction } from 'react';
 import { useKmoContext } from './context';
+import Image from "next/image"
 
 export const ImageElement = (imageProps:any) => {
   const { folder, setFolder,getFileRecursively } = useKmoContext();
@@ -28,7 +29,7 @@ export const ImageElement = (imageProps:any) => {
   
 
   return (shouldLoad 
-    ? <img src={src} {...imageProps}/> 
+    ? <Image src={src} {...imageProps} alt=""/> 
     : <div className="img-placeholder" ref={placeholderRef}/>
   );
 };
