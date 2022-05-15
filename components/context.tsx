@@ -7,6 +7,8 @@ export type KmoContextType = {
     setFolder: (Handle: FileSystemDirectoryHandle) => void;
     dbHandle: FileSystemFileHandle;
     setDbHandle: (Handle: FileSystemFileHandle) => void;
+    cacheHandle: FileSystemFileHandle;
+    setCacheHandle: (Handle: FileSystemFileHandle) => void;
     db: Record<string, any>;
     setDb: (Data: Record<string, any>) => void;
     filesFound: number;
@@ -16,8 +18,10 @@ export type KmoContextType = {
     file: number;
     setFile: (Data: number) => void;
     getFileRecursively: any;
-    cache: any[];
-    setCache: (Data: any[]) => void;
+    cache: any;
+    setCache: (Data: any) => void;
+    saving: boolean;
+    setSaving: (Data: boolean) => void;
 }
 
 export const KmoContext = createContext<KmoContextType>({ 
@@ -25,6 +29,8 @@ export const KmoContext = createContext<KmoContextType>({
     setFolder: folder => console.warn('no folder provider'),
     dbHandle: {} as FileSystemFileHandle, 
     setDbHandle: folder => console.warn('no dbHandle provider'),
+    cacheHandle: {} as FileSystemFileHandle, 
+    setCacheHandle: folder => console.warn('no dbHandle provider'),
     db: {}, 
     setDb: folder => console.warn('no db provider'),
     filesFound: 0, 
@@ -34,7 +40,9 @@ export const KmoContext = createContext<KmoContextType>({
     file: 0, 
     setFile: folder => console.warn('no db provider'),
     getFileRecursively: () => console.warn('no db provider'),
-    cache: [], 
-    setCache: folder => console.warn('no db provider')
+    cache: {}, 
+    setCache: folder => console.warn('no db provider'),
+    saving: false, 
+    setSaving: folder => console.warn('no db provider')
 });
 export const useKmoContext = () => useContext(KmoContext);

@@ -28,16 +28,31 @@ const Main = () => {
     db, setDb, 
     filesFound, setFilesFound,
     viewer, setViewer,
-    file, setFile
+    file, setFile,
+    cache, setCache,
+    saving, setSaving,
+    cacheHandle, setCacheHandle
   } = useKmoContext();
   const main = React.createRef<HTMLInputElement>()
   //picker -> save folderDirHandle to state
   const openFolderDirHandle =async () => {
     const dirHandleVar:FileSystemDirectoryHandle = await window.showDirectoryPicker();
+    setSaving(true)
     setFolder(dirHandleVar)
   }
   //create kmo_db.json -> save dbFileHandle to state
   const getDbHandle = async (folder:FileSystemDirectoryHandle) => {
+    folder.getFileHandle('cache.json', { create: true })
+    .then(fileHandle => {
+      fileHandle.getFile().then(file => file.text()).then(fileText => {
+        let text = JSON.parse(fileText || "{}")
+        for (var key in text) {
+          text[key][0] = null
+        }
+        setCache(text)
+        setCacheHandle(fileHandle)
+      });
+    })
     folder.getFileHandle('db.json', { create: true })
     .then(fileHandle => {
       fileHandle.getFile().then(file => file.text()).then(fileText => {
@@ -115,9 +130,12 @@ const Main = () => {
     // while (main.current?.firstChild) {
     //   main.current?.removeChild(main.current?.firstChild);
     // }
-    if(db?.config?.modifiedDate != undefined) createElements(db)
+    if(db?.config?.modifiedDate != undefined && cache[`index0`]){
+      createElements(db)
+      setSaving(false)
+    } 
     return;
-  }, [db?.config?.modifiedDate])
+  }, [db?.config?.modifiedDate, cache])
   const createElements = (db: Record<string, any>) => setItems(db.data.filesData)
   const refreshDatabase = () => {
     setFilesFound(0)
@@ -144,7 +162,7 @@ const Main = () => {
         <Button variant="contained" onClick={refreshDatabase}>
           {filesFound != 0? "Analyzed "+filesFound:"Refresh"}
         </Button>
-        <Button variant="contained" onClick={()=>setAddTagsModal(!addTagsModal)}>Add new tags</Button>
+        <Button variant="contained" onClick={()=>setAddTagsModal(!addTagsModal)}>Tag Settings</Button>
         <TextField size="small" label="Search" variant="outlined" />
         <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
           <InputLabel id="demo-select-small">Age</InputLabel>

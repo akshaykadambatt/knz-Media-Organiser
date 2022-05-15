@@ -16,7 +16,7 @@ export const ImageElement = (imageProps:any) => {
           path.shift()
           getFileRecursively(path, folder, imageProps['data-file'])
           .then((r: any[])=>{
-            setSrc(r[0])
+            setSrc(r[1])
             setShouldLoad(true)
           })
         }

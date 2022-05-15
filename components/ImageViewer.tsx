@@ -10,6 +10,7 @@ import { styled } from '@mui/material/styles';
 import { AiOutlineHeart } from "react-icons/ai";
 import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
+import TextField from '@mui/material/TextField';
 
 export const ImageViewer = (imageProps:any) => {
   const { 
@@ -34,7 +35,7 @@ export const ImageViewer = (imageProps:any) => {
       let filesData = db.data.filesData[file]
       let path = filesData.path.split('/')
       path.shift()
-      getFileRecursively(path, folder, file)
+      getFileRecursively(path, folder, file, true)
       .then((r: any[])=>{
         setSrc(r[0])
         setDescription(filesData.description);
@@ -44,7 +45,7 @@ export const ImageViewer = (imageProps:any) => {
         path.shift()
         getFileRecursively(path, folder, +file-1)
         .then((r: any[])=>{
-          setPrevSrc(r[0])
+          setPrevSrc(r[1])
         })
       } 
       if(+file < (Object.entries(db.data.filesData).length-1)){
@@ -52,7 +53,7 @@ export const ImageViewer = (imageProps:any) => {
         path.shift()
         getFileRecursively(path, folder, +file+1)
         .then((r: any[])=>{
-          setNextSrc(r[0])
+          setNextSrc(r[1])
         })
       }
     }
@@ -109,9 +110,10 @@ export const ImageViewer = (imageProps:any) => {
               background: "rgb(28 28 28)",
               }}>
               <Box pt={10} className="image-viewer-sidebar" sx={{width: "25vw !important"}}>
-              <Description aria-label="empty textarea" placeholder="Empty"
-                value={description} ref={descriptionRef} onChange={saveDescription}
-              />
+                <TextField label="Name" variant="outlined" fullWidth />
+                <Description aria-label="empty textarea" placeholder="Empty"
+                  value={description} ref={descriptionRef} onChange={saveDescription}
+                />
               </Box>
             </Grid>
         </Grid>
