@@ -48,19 +48,23 @@ theme = responsiveFontSizes(theme);
 const Home: NextPage = () => {
   const [folder, setFolder] = useState({} as FileSystemDirectoryHandle);
   const [dbHandle, setDbHandle] = useState({} as FileSystemFileHandle);
-  const [db, setDb] = useState("");
+  const [db, setDb] = useState({} as Record<string, any>);
   const [filesFound, setFilesFound] = useState(0 as number);
   const [viewer, setViewer] = useState(false);
-  const [file, setFile] = useState("");
-  const getFileRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle) => {
+  const [file, setFile] = useState(0);
+  const [cache, setCache] = useState([] as any[]);
+  const getFileRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number) => {
     let dir:string = path.shift() || "";
+    if(cache[index]) return [cache[index], ""]
     if(path.length == 0){
       let fileHandle = await folderToLookIn.getFileHandle(dir, {})
-      const file = await URL.createObjectURL(await fileHandle.getFile())
-      return file
+      const file = await fileHandle.getFile()
+      cache[+index] = URL.createObjectURL(file)
+      setCache(cache)
+      return [cache[index], file]
     }else{
       let newFolder = await folderToLookIn.getDirectoryHandle(dir,{create: true})
-      return getFileRecursively(path, newFolder)
+      return getFileRecursively(path, newFolder, index)
     }
   }
   
@@ -72,7 +76,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container>
-      <Typography variant="h2" pt={3} >K Media Organiser</Typography>
+      <Typography variant="h1" pt={11} >K Media Organiser</Typography>
       <Typography>
         A configuration file will be created in the selected folder. Please do not 
         remove the <code>db.json</code> file. No data is sent to the server from your computer, that is,
@@ -87,9 +91,10 @@ const Home: NextPage = () => {
         filesFound, setFilesFound,
         viewer, setViewer,
         file, setFile,
-        getFileRecursively
+        getFileRecursively,
+        cache, setCache
         }}>
-      <Main/>
+        <Main/>
       </KmoContext.Provider>
       </Container>
     </ThemeProvider>

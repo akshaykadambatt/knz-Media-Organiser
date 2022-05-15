@@ -14,9 +14,9 @@ export const ImageElement = (imageProps:any) => {
         if (intersectionRatio > 0) {
           let path = imageProps['data-path'].split('/')
           path.shift()
-          getFileRecursively(path, folder)
-          .then((r: SetStateAction<string>)=>{
-            setSrc(r)
+          getFileRecursively(path, folder, imageProps['data-file'])
+          .then((r: any[])=>{
+            setSrc(r[0])
             setShouldLoad(true)
           })
         }
@@ -24,12 +24,13 @@ export const ImageElement = (imageProps:any) => {
       observer.observe(placeholderRef.current);
       return () => observer.disconnect();
     }
-  }, [shouldLoad, placeholderRef]);
+  }, [shouldLoad, placeholderRef, folder, getFileRecursively, imageProps]);
 
   
 
   return (shouldLoad 
-    ? <Image src={src} {...imageProps} alt=""/> 
+    ? <img src={src} {...imageProps} alt="" className='image-item-image' width="800px"
+    height="456.8px"/> 
     : <div className="img-placeholder" ref={placeholderRef}/>
   );
 };
