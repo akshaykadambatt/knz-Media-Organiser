@@ -16,6 +16,9 @@ declare global {
     interface Window {
         showDirectoryPicker:any;
         showSaveFilePicker:any;
+        webkitStorageInfo:any;
+        PERSISTENT:any;
+        requestFileSystem:any;
     }
 }
 

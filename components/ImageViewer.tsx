@@ -25,14 +25,16 @@ export const ImageViewer = (imageProps:any) => {
   const [prevSrc, setPrevSrc] = useState("");
   const [nextSrc, setNextSrc] = useState("");
   const [description, setDescription] = useState("");
+  const [tags, setTags] = useState("");
   const NavigationLeftElem = createRef<HTMLButtonElement>()
   const NavigationRightElem = createRef<HTMLButtonElement>()
-  const descriptionRef = createRef<HTMLTextAreaElement>()
   const focusRef = createRef<HTMLDivElement>()
   useEffect(() => {
     if(viewer){
       focusRef.current?.focus()
       let filesData = db.data.filesData[file]
+      setTags(db.config.tags)
+
       let path = filesData.path.split('/')
       path.shift()
       getFileRecursively(path, folder, file, true)
@@ -68,6 +70,8 @@ export const ImageViewer = (imageProps:any) => {
     if(+file != 0){
       setFile(+file-1)
     } 
+    console.log(tags);
+    
   }
   const nextItem = () => {
     if(+file < (Object.entries(db.data.filesData).length-1)){
@@ -97,25 +101,18 @@ export const ImageViewer = (imageProps:any) => {
           <Chip label="Close" onClick={close} color="secondary"/>
         </Stack>
         </TopBar>
-        <Grid container spacing={2} sx={{flexDirection: "row",flexWrap: "nowrap"}}>
+        <Grid container spacing={2} sx={{flexDirection: "row",flexWrap: "nowrap",alignItems: "center"}}>
           <Grid item xs={sidebar? 9:12} sx={{transition: "all cubic-bezier(0.81, 0.07, 0.05, 1.04)  0.9s",overflow:"hidden"}}>
             <Box className="image-viewer-image-holder">
               <img className="image-viewer-image" src={src} {...imageProps} alt=""/>
             </Box>
           </Grid>
-            <Grid item xs={sidebar? 4:1}  sx={{
-              transition: "all cubic-bezier(0.81, 0.07, 0.05, 1.04) 0.9s",
-              overflow:"hidden",
+            <Sidebar item xs={sidebar? 4:1}  sx={{
               maxWidth: sidebar?"25vw":"0px !important",
-              background: "rgb(28 28 28)",
-              }}>
-              <Box pt={10} className="image-viewer-sidebar" sx={{width: "25vw !important"}}>
-                <TextField label="Name" variant="outlined" fullWidth />
-                <Description aria-label="empty textarea" placeholder="Empty"
-                  value={description} ref={descriptionRef} onChange={saveDescription}
-                />
-              </Box>
-            </Grid>
+              right: sidebar?"16px":"0px !important",
+            }}>
+                <SidebarContent description={description} saveDescription={saveDescription}/>
+            </Sidebar>
         </Grid>
         <BottomBar p={3}>
           <NextImage onClick={prevItem} disableRipple ref={NavigationLeftElem} >
@@ -135,36 +132,101 @@ const TopBar = styled(Stack)(`
   top:0;
   width: inherit;
   background: linear-gradient(180deg, #0000008a, #00000000);
+  transition: all .3s;
+  z-index: 9;
+  opacity: 0;
+  transition-delay: 1s;
+  :hover{
+    transition-delay: 0s;
+    opacity: 1;
+  }
 `)
 
 const BottomBar = styled(Box)(`
   position: fixed;
-  padding-left:1em;
-  padding-right:3em;
+  padding-left:3em;
+  padding-right:4em;
   bottom:0;
   width: inherit;
   background: linear-gradient(0deg, #0000008a, #00000000);
+  transition: all .3s;
   display: flex;
   justify-content: space-between;
+  opacity: 0;
+  transition-delay: 1s;
+  :hover{
+    transition-delay: 0s;
+    opacity: 1;
+  }
 `)
 
 const NextImage = styled(Button)(`
   height:80px;
   width:80px;
-  transition: all .1s;
+  transition: all .3s;
   opacity: .7;
   align-items: flex-end;
   :hover{
     opacity: 1;
   }
 `)
+const Sidebar = styled(Grid)(`
+  transition: all cubic-bezier(0.81, 0.07, 0.05, 1.04) 0.9s;
+  overflow-y:scroll;
+  overflow-x:hidden;
+  background: rgb(28 28 28);
+  max-height: 80vh;
+  position: relative;
+  z-index: 0;
+  border-radius: 20px;
+  resize: horizontal;
+  ::-webkit-scrollbar {
+    width: 8px;
+    background-color: #F5F5F5;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #555;
+  }
+`);
+export const SidebarContent = (data:any) => {
+  const descriptionRef = createRef<HTMLTextAreaElement>()
+  useEffect(() => {
+    descriptionRef.current!.style.height = "0px";
+    const scrollHeight = descriptionRef.current!.scrollHeight;
+    descriptionRef.current!.style.height = scrollHeight + "px";
+  }, [data.description]);
+  return(
+    <>
+      <Box pt={2} className="image-viewer-sidebar" sx={{width: "28vw !important"}}>
+        <Description aria-label="empty textarea" placeholder="Description"
+          value={data.description} ref={descriptionRef} onChange={data.saveDescription}
+        />
+        <Typography>Name</Typography>
+        <Typography>Age</Typography>
+        <Typography>Category</Typography>
+      </Box>
+    </>
+  )
+}
 
-const Description = styled(TextareaAutosize)({
+const Description = styled("textarea")({
   width: "100%", 
   fontFamily:"inherit", 
-  fontSize:"inherit", 
+  fontSize:"24px", 
   backgroundColor: "transparent",
-  border:"none", 
+  border:"2px solid rgb(255 255 255 / 20%)", 
+  borderRadius: "5px",
+  transition: "all .1s",
   outline:"none", 
-  color: "white"
+  color: "white",
+  overflow:"hidden",
+  padding: 13,
+  paddingBottom: 20,
+  marginBottom: 13,
+  maxWidth:"100%",
+  "&:focus": {
+    border:"2px solid rgb(255 255 255 / 90%)", 
+  }
 })

@@ -107,13 +107,21 @@ const Home: NextPage = () => {
       const savingTimer = setInterval(async ()=>{
         setSaving(true)
         console.log("syncing to filesystem");
-        const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: false });
-        await writable.write(JSON.stringify(db));
-        await writable.close();
-        const writable2: FileSystemWritableFileStream = await cacheHandle.createWritable({ keepExistingData: false });
-        await writable2.write(JSON.stringify(cache));
-        await writable2.close();
-        setTimeout(() => setSaving(false), 4000);
+        window.webkitStorageInfo.requestQuota(window.PERSISTENT, 10240*10240, async function(grantedBytes:any) {
+          console.log(grantedBytes)
+          setTimeout(() => setSaving(false), 1000);
+          const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: false });
+          await writable.write(JSON.stringify(db));
+          await writable.close();
+          console.log(grantedBytes)
+          const writable2: FileSystemWritableFileStream = await cacheHandle.createWritable({ keepExistingData: false });
+          await writable2.write({ type: "truncate", size: 2 })
+          await writable2.write(JSON.stringify(cache));
+          await writable2.close();
+          console.log(grantedBytes)
+        }, function() {
+        });
+        
       }, 15000);
       return () => clearInterval(savingTimer);
     }
