@@ -97,7 +97,7 @@ const Home: NextPage = () => {
   const [viewer, setViewer] = useState(false);
   const [saving, setSaving] = useState(false);
   const [file, setFile] = useState(0);
-  const [cache, setCache] = useState({} as any);
+  const [cache, setCache] = useState({"unset":true} as any);
   const getFileRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number, full: boolean = false) => {
     // let dir:string = path.shift() || "";
     if(cache[`index${index}`]){

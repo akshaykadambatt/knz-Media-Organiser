@@ -135,7 +135,8 @@ const Main = () => {
     // while (main.current?.firstChild) {
     //   main.current?.removeChild(main.current?.firstChild);
     // }
-    if(db?.config?.modifiedDate != undefined && cache[`index0`]){
+    if(db?.config?.modifiedDate != undefined && cache['unset'] == undefined){
+      // if(db?.config?.modifiedDate != undefined && cache[`index0`]){
       createElements(db)
       setSaving(false)
     } 
