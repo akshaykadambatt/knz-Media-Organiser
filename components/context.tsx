@@ -18,6 +18,7 @@ export type KmoContextType = {
     file: number;
     setFile: (Data: number) => void;
     getFileRecursively: any;
+    syncWithFileSystem: any;
     cache: any;
     setCache: (Data: any) => void;
     saving: boolean;
@@ -40,6 +41,7 @@ export const KmoContext = createContext<KmoContextType>({
     file: 0, 
     setFile: folder => console.warn('no db provider'),
     getFileRecursively: () => console.warn('no db provider'),
+    syncWithFileSystem: () => console.warn('no db provider'),
     cache: {}, 
     setCache: folder => console.warn('no db provider'),
     saving: false, 

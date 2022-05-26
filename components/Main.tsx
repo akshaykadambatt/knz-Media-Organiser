@@ -9,9 +9,14 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { CircularProgress, Container, FormControlLabel, FormGroup, Switch } from '@mui/material';
 import {ImageViewer} from "./ImageViewer"
 import AddTagsModal from "./AddTags"
 import { Skeleton } from "@mui/material";
+import { IoFilterSharp } from 'react-icons/io5';
+import { MdOutlineSync, MdTag, MdRefresh, MdOutlineFolderOpen } from 'react-icons/md';
+import { styled } from '@mui/material/styles';
+import { useTheme } from '@mui/material';
 
 declare global {
     interface Window {
@@ -35,8 +40,10 @@ const Main = () => {
     file, setFile,
     cache, setCache,
     saving, setSaving,
-    cacheHandle, setCacheHandle
+    cacheHandle, setCacheHandle,
+    syncWithFileSystem
   } = useKmoContext();
+  const theme = useTheme();
   const main = React.createRef<HTMLInputElement>()
   //picker -> save folderDirHandle to state
   const openFolderDirHandle =async () => {
@@ -106,19 +113,21 @@ const Main = () => {
     let data: any[] = [];
     const folderHandler = async (folder: FileSystemDirectoryHandle) => {
       directory.push(folder.name);
+      
       for await (const entry of folder.values()) {
+        console.log(data.length);
         if (entry.kind != "directory") {
           var temp = entry.name.split('.').pop() || "";
           var formats = ["jpg", "jpeg", "png", "gif", "webp"];
           if (formats.includes(temp)) {
             const fileHandle = await folder.getFileHandle(entry.name, {});
             const file: File = await fileHandle.getFile();
-            setFilesFound((filesFound: number) => filesFound + 1)
+            console.log(db.data.filesData);
             data.push({
               path: directory.join('/') + '/' + entry.name,
               modifiedDate: file.lastModified,
               tags: {
-                newTag: "fdas"
+                newTag: "string"
               },
               description: "",
               likes:0
@@ -126,6 +135,7 @@ const Main = () => {
           }
         } else if (entry.kind == "directory") await folderHandler(entry);
       }
+      setFilesFound(data.length)
       directory.pop()
     }
     await folderHandler(folder).then(()=>data)
@@ -149,6 +159,7 @@ const Main = () => {
   }
 
   return (<>
+      <Container>
       {db.config&&
       <>
         <Typography variant="h2" pt={3} >{db?.config?.name}</Typography>
@@ -161,38 +172,47 @@ const Main = () => {
         </Typography>
       </>
       }
-      <Stack spacing={2} pt={3} direction="row">
-      <Button variant="contained" onClick={openFolderDirHandle}>Set Folder</Button>
+      </Container>
+      <ButtonBar>
+      <Stack spacing={2} sx={{paddingBlock:3}} direction="row">
+      <Button variant="contained" onClick={openFolderDirHandle} startIcon={<MdOutlineFolderOpen />}>Set Folder</Button>
       {db.config&& 
       <>
-        <Button variant="contained" onClick={refreshDatabase}>
+        <Button variant="contained" onClick={refreshDatabase} startIcon={<MdRefresh />}>
           {filesFound != 0? "Analyzed "+filesFound:"Refresh"}
         </Button>
-        <Button variant="contained" onClick={()=>setAddTagsModal(!addTagsModal)}>Tag Settings</Button>
-        <TextField size="small" label="Search" variant="outlined" />
-        <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-          <InputLabel id="demo-select-small">Age</InputLabel>
-          <Select
-            labelId="demo-select-small"
-            id="demo-select-small"
-            label="Age"
-            value={10}
-          >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            <MenuItem value={10}>Ten</MenuItem>
-            <MenuItem value={20}>Twenty</MenuItem>
-            <MenuItem value={30}>Thirty</MenuItem>
-          </Select>
-        </FormControl>
+        <Button variant="contained" onClick={()=>setAddTagsModal(!addTagsModal)} startIcon={<MdTag />}>Tag Settings</Button>
+        <Button variant="contained" onClick={syncWithFileSystem} startIcon={<MdOutlineSync />}>Sync with filesystem</Button>
+        <Button variant="contained" onClick={syncWithFileSystem} startIcon={<IoFilterSharp />}> Filter</Button>
+        {false &&
+        <>
+          <TextField size="small" label="Search" variant="outlined" />
+          <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+            <InputLabel id="demo-select-small">Age</InputLabel>
+            <Select
+              labelId="demo-select-small"
+              id="demo-select-small"
+              label="Age"
+              value={10}
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              <MenuItem value={10}>Ten</MenuItem>
+              <MenuItem value={20}>Twenty</MenuItem>
+              <MenuItem value={30}>Thirty</MenuItem>
+            </Select>
+          </FormControl>
+        </>
+        }
+        
       </>
       }
       </Stack>
+      </ButtonBar>
+      <Container>
       {addTagsModal&& <AddTagsModal open={addTagsModal} setOpen={setAddTagsModal}/>}
-      <br></br>
       <ImageViewer open={viewer} file={file}/>
-      <br></br>
       <div ref={main} className="imageItemWrapper">
       {Object.entries(items).map(([key, value]: any) => (
         <div key = {key} className = "imageItem">
@@ -206,7 +226,16 @@ const Main = () => {
         </div>
       ))}
       </div>
+  </Container>
   </>)
 }
 
 export default Main
+
+
+const ButtonBar = styled(Container)(({ theme }) => (`
+  background:linear-gradient(${theme.palette.background.paper},transparent);
+  backdrop-filter:blur(10px);
+  position: sticky;
+  top:-5px;
+`))

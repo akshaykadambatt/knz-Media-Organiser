@@ -128,7 +128,7 @@ const Home: NextPage = () => {
     }
   }
   const getDataThumb = async (fullImage:any) => {
-    let thumbSize = 100
+    let thumbSize = 50
     let img = await new Image()
     img.src = fullImage
     await img.decode();
@@ -143,30 +143,31 @@ const Home: NextPage = () => {
     return oc.toDataURL();
   }
   useEffect(() => {
+    const savingTimer = setInterval(async ()=>{
+      syncWithFileSystem()
+    }, 150000);
+
+    return () => clearInterval(savingTimer);
+  }, [dbHandle.name, cacheHandle.name])
+
+  const syncWithFileSystem = () => {
     if(dbHandle.name && cacheHandle.name){
-      const savingTimer = setInterval(async ()=>{
         setSaving(true)
         console.log("syncing to filesystem");
         window.webkitStorageInfo.requestQuota(window.PERSISTENT, 10240*10240, async function(grantedBytes:any) {
-          console.log(grantedBytes)
           setTimeout(() => setSaving(false), 1000);
           const writable: FileSystemWritableFileStream = await dbHandle.createWritable({ keepExistingData: false });
           await writable.write(JSON.stringify(db));
           await writable.close();
-          console.log(grantedBytes)
           const writable2: FileSystemWritableFileStream = await cacheHandle.createWritable({ keepExistingData: false });
           await writable2.write({ type: "truncate", size: 2 })
           await writable2.write(JSON.stringify(cache));
           await writable2.close();
-          console.log(grantedBytes)
-        }, function() {
-        });
-        
-      }, 150000);
-      return () => clearInterval(savingTimer);
+        console.log("sync complete");
+        }, ()=>{});
+      return;
     }
-    
-  }, [dbHandle.name, cacheHandle.name])
+  }
 
   return (
     <ThemeProvider theme={isDarkTheme ? darkTheme : lightTheme}>
@@ -176,7 +177,7 @@ const Home: NextPage = () => {
         <meta name="description" content="KMO" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Container sx={{bgcolor:'background.default'}}>
+      <Container>
       <Typography variant="h1" pt={11} >K Media Organiser</Typography>
       <Typography>
         A configuration file will be created in the selected folder. Please do not 
@@ -188,6 +189,7 @@ const Home: NextPage = () => {
       <FormGroup>
         <FormControlLabel control={<Switch checked={isDarkTheme} onChange={changeTheme} />} label="Dark Mode"/>
       </FormGroup>
+      </Container>
       <KmoContext.Provider value={{ 
         folder, setFolder, 
         dbHandle, setDbHandle, 
@@ -195,7 +197,7 @@ const Home: NextPage = () => {
         filesFound, setFilesFound,
         viewer, setViewer,
         file, setFile,
-        getFileRecursively,
+        getFileRecursively, syncWithFileSystem,
         cache, setCache,
         saving, setSaving,
         cacheHandle, setCacheHandle
@@ -205,28 +207,27 @@ const Home: NextPage = () => {
       <SaveBox  className={"savingStyle "+(saving?"savingStyle-active":null)}>
           <CircularProgress  size={22}/> <Typography>Syncing with filesystem</Typography>
         </SaveBox>
-      </Container>
     </ThemeProvider>
   )
 }
 
 export default Home
 
-const SaveBox = styled(Box)(`
+const SaveBox = styled(Box)(({ theme }) => (`
   position: fixed;
   z-index: 10;
   bottom: 3vh;
   left: 2vw;
-  background: #efefef;
-  padding: 7px 0px;
+  background: ${theme.palette.background.paper};
+  padding: 10px 0px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   align-content: center;
   justify-content: space-around;
   flex-direction: row;
-  width: 180px;
-  border: 2px solid #dbdada;
+  width: 190px;
+  border: 2px solid ${theme.palette.background.paper};
   transition: all .4s;
   transform: translateY(200px);
   opacity:0;
@@ -235,6 +236,6 @@ const SaveBox = styled(Box)(`
     opacity:1;
   }
   .MuiTypography-root{
-    font-size:13px;
+    font-size:15px;
   }
-`)
+`))
