@@ -11,6 +11,7 @@ import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import {ImageViewer} from "./ImageViewer"
 import AddTagsModal from "./AddTags"
+import { Skeleton } from "@mui/material";
 
 declare global {
     interface Window {
@@ -115,11 +116,12 @@ const Main = () => {
             setFilesFound((filesFound: number) => filesFound + 1)
             data.push({
               path: directory.join('/') + '/' + entry.name,
+              modifiedDate: file.lastModified,
               tags: {
-                modifiedDate: file.lastModified,
                 newTag: "fdas"
               },
-              description: ""
+              description: "",
+              likes:0
             });
           }
         } else if (entry.kind == "directory") await folderHandler(entry);

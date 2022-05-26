@@ -51,16 +51,14 @@ a {
     z-index: 10;
     background: linear-gradient(0deg, #000000, #000000e8);
 }
-.image-viewer-image-holder{
-  display: flex;
-  height: inherit;
-  justify-content: center;
+
+.image-viewer-image-holder div:first-child{
+  overflow: visible;
 }
 .image-viewer-image{
   height: 100vh;
   width: auto;
 }
-
 .navigation-image{
   object-position: 50% 21%;
   object-fit: cover;

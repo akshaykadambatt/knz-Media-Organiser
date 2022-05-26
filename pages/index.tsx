@@ -5,15 +5,17 @@ import Main from '../components/Main'
 import { KmoContext } from '../components/context';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';  
-import { CircularProgress, Container } from '@mui/material';
+import { CircularProgress, Container, FormControlLabel, FormGroup, Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/system/Box';
+import CssBaseline from '@mui/material/CssBaseline';
 
-const themeOptions = {
+const lightTheme = responsiveFontSizes(createTheme({
+  palette: {
+    mode: 'light',
+  },
   typography: {
     fontFamily: "'Source Sans Pro', sans-serif",
-    textTransform: "none",
-    fontWeight:300,
     h1: {
       fontWeight: 100,
       "@media (max-width: 400px)": { fontSize: "46px" }
@@ -45,10 +47,48 @@ const themeOptions = {
       fontWeight: 600,
     }
     }
-};
-let theme = createTheme(themeOptions);
-theme = responsiveFontSizes(theme);
+}));
+const darkTheme = responsiveFontSizes(createTheme({
+  palette: {
+    mode: 'dark'
+  },
+  typography: {
+    fontFamily: "'Source Sans Pro', sans-serif",
+    h1: {
+      fontWeight: 100,
+      "@media (max-width: 400px)": { fontSize: "46px" }
+    },
+    h2: {
+      fontWeight: 100,
+      "@media (max-width: 400px)": { fontSize: "30px" }
+    },
+    h3: {
+      fontWeight: 100,
+    },
+    h4: {
+      fontWeight: 100
+    },
+    h5: {
+      fontWeight: 100
+    },
+    h6: {
+      fontWeight: 100
+    },
+    body1: {
+      fontWeight: 300,
+      fontSize: 18
+    },
+    body2: {
+      fontWeight: 600
+    },
+    button: {
+      fontWeight: 600,
+    }
+    }
+}));
 const Home: NextPage = () => {
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const changeTheme = () => setIsDarkTheme(!isDarkTheme);
   const [folder, setFolder] = useState({} as FileSystemDirectoryHandle);
   const [dbHandle, setDbHandle] = useState({} as FileSystemFileHandle);
   const [cacheHandle, setCacheHandle] = useState({} as FileSystemFileHandle);
@@ -122,20 +162,21 @@ const Home: NextPage = () => {
         }, function() {
         });
         
-      }, 15000);
+      }, 150000);
       return () => clearInterval(savingTimer);
     }
     
   }, [dbHandle.name, cacheHandle.name])
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={isDarkTheme ? darkTheme : lightTheme}>
+      <CssBaseline />
       <Head>
         <title>KMO</title>
         <meta name="description" content="KMO" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Container>
+      <Container sx={{bgcolor:'background.default'}}>
       <Typography variant="h1" pt={11} >K Media Organiser</Typography>
       <Typography>
         A configuration file will be created in the selected folder. Please do not 
@@ -144,6 +185,9 @@ const Home: NextPage = () => {
         all maintained locally, securely. Keep in mind that actions like renaming deletion, etc.
         will affect your real files and might be irriversible.
       </Typography>
+      <FormGroup>
+        <FormControlLabel control={<Switch checked={isDarkTheme} onChange={changeTheme} />} label="Dark Mode"/>
+      </FormGroup>
       <KmoContext.Provider value={{ 
         folder, setFolder, 
         dbHandle, setDbHandle, 
