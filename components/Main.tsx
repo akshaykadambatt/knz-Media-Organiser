@@ -86,11 +86,13 @@ const Main = () => {
    */
    const init =async (dbHandle:FileSystemFileHandle) => {
     let filesData = await getFilesData(folder)
+    let found; //for Refresh button
+    if(Object.keys(db).length != 0) found = true;
     let database: object = {
       config:{
-        name: "My Gallery",
+        name: found? db.config.name : "My Gallery",
         folderName: dbHandle.name,
-        tags:{},
+        tags: found? db.config.tags : {},
         modifiedDate: + new Date()
       },
       data:{
@@ -115,22 +117,25 @@ const Main = () => {
       directory.push(folder.name);
       
       for await (const entry of folder.values()) {
-        console.log(data.length);
         if (entry.kind != "directory") {
           var temp = entry.name.split('.').pop() || "";
           var formats = ["jpg", "jpeg", "png", "gif", "webp"];
           if (formats.includes(temp)) {
             const fileHandle = await folder.getFileHandle(entry.name, {});
             const file: File = await fileHandle.getFile();
-            console.log(db.data.filesData);
+            let found; //for Refresh button
+            if(Object.keys(db).length != 0){
+              let keyy = Object.keys(db.data.filesData).find(key => 
+                db.data.filesData[key].path == directory.join('/') + '/' + entry.name
+              ) || -1;
+              if((keyy: any)=>0) found = db.data.filesData[keyy]
+            } 
             data.push({
               path: directory.join('/') + '/' + entry.name,
               modifiedDate: file.lastModified,
-              tags: {
-                newTag: "string"
-              },
-              description: "",
-              likes:0
+              tags: found? found.tags: {},
+              description: found? found.description: "",
+              likes: found? found.likes: 0
             });
           }
         } else if (entry.kind == "directory") await folderHandler(entry);

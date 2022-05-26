@@ -7,7 +7,7 @@ import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import { BsHeart } from "react-icons/bs";
+import { BsHeart, BsHeartFill } from "react-icons/bs";
 import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import TextField from '@mui/material/TextField';
@@ -41,15 +41,12 @@ export const ImageViewer = (imageProps:any) => {
       focusRef.current?.focus()
       let filesData = db.data.filesData[file]
       setTags(db.config.tags)
-
       let path = filesData.path.split('/')
       path.shift()
       getFileRecursively(path, folder, file, true)
       .then((r: any[])=>{
         setSrc(r[0])
         setDescription(filesData.description);
-        console.log("filesdata likes = ", filesData.likes);
-        
         setLikes(filesData.likes)
       })
       if(+file != 0){
@@ -81,7 +78,6 @@ export const ImageViewer = (imageProps:any) => {
   const toggleSidebar = () => setSidebar(!sidebar)
   const prevItem = () => {
     if(+file != 0)setFile(+file-1)
-    
   }
   const nextItem = () => {
     if(+file < (Object.entries(db.data.filesData).length-1)) setFile(+file+1)
@@ -100,9 +96,13 @@ export const ImageViewer = (imageProps:any) => {
     else{ setAlignSidebarToRight(false) }
   }
   const likeImage = async () => {
-    await setLikes((likes: number) => likes + 1)
-    db.data.filesData[file].likes = likes;
+    setLikes((likes: number) => likes + 1)
   }
+  useEffect(() => {
+    if(viewer){
+      db.data.filesData[file].likes = likes;
+    }
+  }, [viewer, likes]);
   return (viewer 
     ? <Card className="image-viewer" ref={focusRef} onKeyDown={keyDownHandler} tabIndex={0}
     sx={{
@@ -114,7 +114,11 @@ export const ImageViewer = (imageProps:any) => {
           <Chip label="Close" onClick={close} />
         </Stack>
         <Stack direction="row" spacing={1}>
-          <Chip icon={<BsHeart size={13} style={{marginLeft:"9px"}}/>} label="Like" onClick={likeImage} />
+          <Chip 
+            icon={(likes>0)? <BsHeartFill size={13} style={{marginLeft:"9px"}}/>:<BsHeart size={13} style={{marginLeft:"9px"}}/>} 
+            label="Like" 
+            onClick={likeImage} 
+          />
           <Chip label="Open Sidebar" onClick={toggleSidebar}  />
           <Chip label="Close" onClick={close} />
         </Stack>
