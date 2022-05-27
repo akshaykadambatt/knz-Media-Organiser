@@ -97,25 +97,26 @@ const Home: NextPage = () => {
   const [viewer, setViewer] = useState(false);
   const [saving, setSaving] = useState(false);
   const [file, setFile] = useState(0);
-  const [cache, setCache] = useState({"unset":true} as any);
+  const [cache, setCache] = useState(["unset"] as any);
   const getFileRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number, full: boolean = false) => {
     // let dir:string = path.shift() || "";
-    if(cache[`index${index}`]){
-      if(cache[`index${index}`][0]==null && full===true){
-        cache[`index${index}`][0] = await getBlobRecursively(path,folderToLookIn,index)
+    if(cache[index]){
+      if(cache[index][0]==null && full===true){
+        cache[index][0] = await getBlobRecursively(path,folderToLookIn,index)
         setCache(cache)
-      }else console.log("cache hit");
-      return cache[`index${index}`]
+      }else //console.log("cache hit");
+      return cache[index]
     }else{
       let fullImage = await getBlobRecursively(path,folderToLookIn,index)
       let data = await getDataThumb(fullImage);
-      cache[`index${index}`] = [fullImage,data]
+      cache[index] = [fullImage,data]
       setCache(cache)
-      return cache[`index${index}`]
+      return cache[index]
     }
+    
   }
   const getBlobRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number, full: boolean = false) => {
-    console.log("cache miss",`index${index}`, cache[`index${index}`]);
+    console.log("cache miss",index, cache[index]);
     let dir:string = path.shift() || "";
     if(path.length == 0){
       let fileHandle = await folderToLookIn.getFileHandle(dir, {})
@@ -161,6 +162,8 @@ const Home: NextPage = () => {
           await writable.close();
           const writable2: FileSystemWritableFileStream = await cacheHandle.createWritable({ keepExistingData: false });
           await writable2.write({ type: "truncate", size: 2 })
+          console.log("cachecachecache ", JSON.stringify(cache), cache);
+          
           await writable2.write(JSON.stringify(cache));
           await writable2.close();
         console.log("sync complete");

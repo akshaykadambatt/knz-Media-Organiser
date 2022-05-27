@@ -12,7 +12,7 @@ import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import TextField from '@mui/material/TextField';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { alpha, Autocomplete, Card, fabClasses } from '@mui/material';
+import { alpha, Autocomplete, Card } from '@mui/material';
 import { useTheme } from '@mui/material';
 
 export const ImageViewer = (imageProps:any) => {
@@ -20,6 +20,7 @@ export const ImageViewer = (imageProps:any) => {
     folder, setFolder, 
     getFileRecursively, 
     viewer, setViewer, 
+    cache, setCache,
     db, setDb,
     file, setFile
   } = useKmoContext();
@@ -30,6 +31,7 @@ export const ImageViewer = (imageProps:any) => {
   const [nextSrc, setNextSrc] = useState("");
   const [prevKey, setPrevKey] = useState(-1);
   const [nextKey, setNextKey] = useState(-1);
+  const [updateViewer, setUpdateViewer] = useState(-1);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [currentTags, setCurrentTags] = useState({});
@@ -38,8 +40,31 @@ export const ImageViewer = (imageProps:any) => {
   const NavigationLeftElem = createRef<HTMLButtonElement>()
   const NavigationRightElem = createRef<HTMLButtonElement>()
   const focusRef = createRef<HTMLDivElement>()
+  useEffect(()=>{
+    console.log("prevKey",prevKey);
+    console.log("file",file, db.data?.filesData[file]?.path, db.data?.filesData);
+    console.log("nextKey",nextKey);
+    if(viewer && db.data.filesData[prevKey]){
+      let path = db.data.filesData[prevKey].path.split('/')
+      path.shift()
+      getFileRecursively(path, folder, prevKey).then((r: any[])=>setPrevSrc(r[1]))
+    }else{
+      setPrevSrc('')
+    }
+  },[prevKey])
+  useEffect(()=>{
+    if(viewer && db.data.filesData[nextKey]){
+      let path = db.data.filesData[nextKey].path.split('/')
+      path.shift()
+      getFileRecursively(path, folder,nextKey).then((r: any[])=>setNextSrc(r[1]))
+    }else{
+      setNextSrc('')
+    }
+  },[nextKey])
   useEffect(() => {
-    if(viewer){
+    console.log("db.data.filesData[file] ", db.data?.filesData[file]);
+    
+    if(viewer && db.data?.filesData[file] != undefined){
       focusRef.current?.focus()
       let filesData = db.data.filesData[file]
       setTags(db.config.tags)
@@ -51,62 +76,63 @@ export const ImageViewer = (imageProps:any) => {
         setDescription(filesData.description);
         setLikes(filesData.likes)
       })
-      
-      if(+file != 0){
-        var notfound = 0; 
-        let iter = 1
-        let found=-1;
-        while (notfound==0) {
-          if(db.data.filesData[+file-iter] && file!=+file-iter){
-            found = +file-iter;
-            notfound=1;
-            break;
-          }
-          if(+file-iter < -1) break;
-          iter++;
-        }
-        if(found!=-1){
-          setPrevKey(found)
-          let path = db.data.filesData[found].path.split('/')
-          path.shift()
-          getFileRecursively(path, folder, found)
-          .then((r: any[])=>{
-            setPrevSrc(r[1])
-          })
-        }
+      setPrevKey(+file-1)
+      setNextKey(+file+1)
+      // if(+file != 0){
+      //   var notfound = 0; 
+      //   let iter = 1
+      //   let found=-1;
+      //   while (notfound==0) {
+      //     if(db.data.filesData[+file-iter] && file!=+file-iter){
+      //       found = +file-iter;
+      //       notfound=1;
+      //       break;
+      //     }
+      //     if(+file-iter < -1) break;
+      //     iter++;
+      //   }
+      //   if(found!=-1){
+      //     setPrevKey(found)
+      //     let path = db.data.filesData[found].path.split('/')
+      //     path.shift()
+      //     getFileRecursively(path, folder, found)
+      //     .then((r: any[])=>{
+      //       setPrevSrc(r[1])
+      //     })
+      //   }
         
-      } 
-      /**
-       * There is no way to get the last item in object
-       * So, setting an arbitary value, 100, incase the user deleted 100 images in one go.
-       */
-      let limit = Object.entries(db.data.filesData).length+100
-      if(+file < limit){
-        var notfound = 0; 
-        let iter = 1;
-        let found = 0;
-        while (notfound==0) {
-          if(+file+iter>limit) break;
-          if(db.data.filesData[+file+iter]){
-            found = +file+iter;
-            notfound=1;
-            break;
-          }
-          iter++;
-        }
-        if(found){
-          setNextKey(found)
-          let path = db.data.filesData[found].path.split('/')
-          path.shift()
-          getFileRecursively(path, folder, found)
-          .then((r: any[])=>{
-            setNextSrc(r[1])
-          })
-        }
+      // } 
+      // /**
+      //  * There is no way to get the last item in object
+      //  * So, setting an arbitary value, 100, incase the user deleted 100 images in one go.
+      //  */
+      // let limit = Object.entries(db.data.filesData).length+100
+      // if(+file < limit){
+      //   var notfound = 0; 
+      //   let iter = 1;
+      //   let found = 0;
+      //   while (notfound==0) {
+      //     if(+file+iter>limit) break;
+      //     if(db.data.filesData[+file+iter]){
+      //       found = +file+iter;
+      //       notfound=1;
+      //       break;
+      //     }
+      //     iter++;
+      //   }
+      //   if(found){
+      //     setNextKey(found)
+      //     let path = db.data.filesData[found].path.split('/')
+      //     path.shift()
+      //     getFileRecursively(path, folder, found)
+      //     .then((r: any[])=>{
+      //       setNextSrc(r[1])
+      //     })
+      //   }
         
-      }
-    }
-  }, [viewer, file]);
+      // }
+    }else setViewer(false)
+  }, [viewer, file, updateViewer]);
   const saveTags = async (event: any) => {
     await setCurrentTags(event)
     db.data.filesData[file].tags = currentTags
@@ -117,14 +143,17 @@ export const ImageViewer = (imageProps:any) => {
   }
   const toggleSidebar = () => setSidebar(!sidebar)
   const prevItem = () => {
-    // console.log("prevKey", prevKey);
-    // console.log("nextKey", nextKey);
     if(+file != 0 && prevKey != -1)setFile(prevKey)
   }
   const nextItem = () => {
-    // console.log("prevKey", prevKey);
-    // console.log("nextKey", nextKey);
-    if(+file < (Object.entries(db.data.filesData).length +100) && nextKey != -1) setFile(nextKey)
+    console.log("insider nextitem", +file < (db.data.filesData.length-1) && nextKey != -1);
+    console.log("+file < (db.data.filesData.length-1)", +file < (db.data.filesData.length-1));
+    console.log("nextKey != -1", nextKey != -1);
+    console.log("nextKey", nextKey);
+    console.log("+file", +file);
+    console.log("(db.data.filesData.length-1)", (db.data.filesData.length-1));
+    
+    if(+file < (db.data.filesData.length-1) && nextKey != -1) setFile(nextKey)
   }
   const saveDescription = (event: any) => {
     setDescription(event.target.value)
@@ -149,27 +178,33 @@ export const ImageViewer = (imageProps:any) => {
   }, [viewer, likes]);
   const deleteFile = async () => {
       let filesData = db.data.filesData[file]
+      console.log("deleteing", file, filesData);
+      
       let path = filesData.path.split('/')
       path.shift()
       getFileAndDelete(path, folder, filesData.path)
   }
   const getFileAndDelete: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, fullpath:any) => {
+    console.log("delete path ", path);
     let dir:string = path.shift() || "";
+    
     if(path.length == 0){
-      // let fileHandle: FileSystemFileHandle = await folderToLookIn.getFileHandle(dir, {})
       await folderToLookIn.removeEntry(dir);
-      let found; //for Refresh button
       if(Object.keys(db).length != 0){
-        let keyy = Object.keys(db.data.filesData).find(key => {
-          if(db.data.filesData[key].path == fullpath){
-            delete db.data.filesData[key]
+        let keyFound = db.data.filesData.find((item: any, key:any) => {
+          if(item.path == fullpath) {
+            console.log(item.path, fullpath);
+            return key-1
           }
-        }
-        ) || -1;
-      } 
+        }) || -1;
+        db.data.filesData.splice(file, 1);
+        cache.splice(file, 1);
+        setCache(cache)
+      }
       imageProps.createElements(db)
-      nextItem()
-      return
+      console.log("after delete db.data.filesData ", db.data.filesData);
+      setUpdateViewer((updateViewer) => updateViewer + 1)
+      return;
     }else{
       let newFolder = await folderToLookIn.getDirectoryHandle(dir,{create: true})
       return getFileAndDelete(path, newFolder)
@@ -226,12 +261,17 @@ export const ImageViewer = (imageProps:any) => {
           </Grid>
         </Grid>
         <BottomBar p={3}>
-          <NextImage onClick={prevItem} disableRipple ref={NavigationLeftElem} >
+          {prevSrc && 
+          <PrevImage onClick={prevItem} disableRipple ref={NavigationLeftElem} >
             <img className="navigation-image" src={prevSrc} alt="" />
-          </NextImage>
+          </PrevImage>
+          }
+          <Typography>{db?.data.filesData[file]?.path}</Typography>
+          {nextSrc &&
           <NextImage onClick={nextItem} disableRipple ref={NavigationRightElem}>
             <img className="navigation-image" src={nextSrc} alt="" />
           </NextImage>
+          }
         </BottomBar>
       </Card>
     : null
@@ -250,7 +290,7 @@ const TopBar = styled(Stack)(({ theme }) => (`
   background: transparent;
   backdrop-filter:blur(10px);
   :hover{
-    background: ${alpha(theme.palette.background.default,0.5)};
+    background: ${alpha(theme.palette.background.default,0.8)};
     transform: translatey(0px);
     transition-delay: 0s;
     opacity: 1;
@@ -262,14 +302,15 @@ const BottomBar = styled(Box)(({ theme }) => (`
   padding-right:4em;
   bottom:0;
   width: inherit;
-  background: linear-gradient(0deg, ${theme.palette.background.default}, transparent );
+  height:130px;
+  background: transparent;
   transition: all .3s;
-  display: flex;
-  justify-content: space-between;
   opacity: 0.3;
   transform: translatey(70px);
+  backdrop-filter:blur(10px);
   transition-delay: .5s;
   :hover{
+    background: ${alpha(theme.palette.background.default,0.8)};
     transform: translatey(0px);
     transition-delay: 0s;
     opacity: 1;
@@ -279,12 +320,22 @@ const BottomBar = styled(Box)(({ theme }) => (`
 const NextImage = styled(Button)(`
   height:80px;
   width:80px;
+  position: absolute;
+  bottom:10px;
+  right:20px;
   transition: all .3s;
-  opacity: .7;
+  opacity: 1;
   align-items: flex-end;
-  :hover{
-    opacity: 1;
-  }
+`)
+const PrevImage = styled(Button)(`
+  height:80px;
+  width:80px;
+  position: absolute;
+  bottom:10px;
+  left:20px;
+  transition: all .3s;
+  opacity: 1;
+  align-items: flex-end;
 `)
 const ImageViewerWrapper = styled(Box)(`
 display: flex;

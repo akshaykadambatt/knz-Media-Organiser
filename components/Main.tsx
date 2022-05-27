@@ -13,7 +13,7 @@ import { CircularProgress, Container, FormControlLabel, FormGroup, Switch } from
 import {ImageViewer} from "./ImageViewer"
 import AddTagsModal from "./AddTags"
 import { Skeleton } from "@mui/material";
-import { IoFilterSharp } from 'react-icons/io5';
+import { IoFilterSharp, IoAlbumsOutline } from 'react-icons/io5';
 import { MdOutlineSync, MdTag, MdRefresh, MdOutlineFolderOpen } from 'react-icons/md';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material';
@@ -56,7 +56,7 @@ const Main = () => {
     folder.getFileHandle('cache.json', { create: true })
     .then(fileHandle => {
       fileHandle.getFile().then(file => file.text()).then(fileText => {
-        let text = JSON.parse(fileText || "{}")
+        let text = JSON.parse(fileText || "[]")
         for (var key in text) {
           text[key][0] = null
         }
@@ -144,13 +144,16 @@ const Main = () => {
       directory.pop()
     }
     await folderHandler(folder).then(()=>data)
-    return Object.assign({}, data)
+    console.log(db);
+    
+    return(data);
+    // return Object.assign({}, data)
   }
   useEffect(() => {
     // while (main.current?.firstChild) {
     //   main.current?.removeChild(main.current?.firstChild);
     // }
-    if(db?.config?.modifiedDate != undefined && cache['unset'] == undefined){
+    if(db?.config?.modifiedDate != undefined && cache[0] != "unset"){
       // if(db?.config?.modifiedDate != undefined && cache[`index0`]){
       createElements(db)
       setSaving(false)
@@ -172,12 +175,15 @@ const Main = () => {
     setCache({"unset":true})
     const writable2: FileSystemWritableFileStream = await cacheHandle.createWritable({ keepExistingData: false });
     await writable2.write({ type: "truncate", size: 2 })
-    await writable2.write(JSON.stringify({}));
+    await writable2.write(JSON.stringify([]));
     await writable2.close();
     setFilesFound(0)
     init(dbHandle)
   }
-
+  const newAlbumStart = () => {
+    console.log('new album start');
+    
+  }
   return (<>
       <Container>
       {db.config&&
@@ -195,7 +201,9 @@ const Main = () => {
       </Container>
       <ButtonBar>
       <Stack spacing={2} sx={{paddingBlock:3}} direction="row">
-      <Button variant="contained" onClick={openFolderDirHandle} startIcon={<MdOutlineFolderOpen />}>Set Folder</Button>
+      {(db.config)? null:
+        <Button variant="contained" onClick={openFolderDirHandle} startIcon={<MdOutlineFolderOpen />}>Set Folder</Button>
+      }
       {db.config&& 
       <>
         <Button variant="contained" onClick={refreshDatabase} startIcon={<MdRefresh />}>
@@ -203,6 +211,7 @@ const Main = () => {
         </Button>
         <Button variant="contained" onClick={()=>setAddTagsModal(!addTagsModal)} startIcon={<MdTag />}>Tag Settings</Button>
         <Button variant="contained" onClick={syncWithFileSystem} startIcon={<MdOutlineSync />}>Sync with filesystem</Button>
+        <Button variant="contained" onClick={newAlbumStart} startIcon={<IoAlbumsOutline />}> New Album</Button>
         <Button variant="contained" onClick={syncWithFileSystem} startIcon={<IoFilterSharp />}> Filter</Button>
         {false &&
         <>
@@ -243,6 +252,7 @@ const Main = () => {
           data-description = {value.description}
           data-modifieddate = {value.tags.modifiedDate}
           onClick = {()=>{setViewer(true);setFile(key);}}
+          album={1}
            />
         </div>
       ))}

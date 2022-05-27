@@ -20,8 +20,16 @@ a {
 .imageItem .image-item-image{
   object-fit: cover;
   width: 100%;
+  border-radius: 3px;
   height: 100%;
   object-position: 50% 21%;
+}
+.album-image-item{
+  position: relative;
+}
+.imageItem .image-item-image.album-image-item{
+  height: 85%;
+  bottom:-15%;
 }
 .imageItemWrapper{
   display: grid;
@@ -32,9 +40,8 @@ a {
 .imageItem{
   height: 70px;
   width: 100%;
-  border-radius: 3px;
-  overflow: hidden;
   image-rendering:optimizeSpeed;
+  cursor: pointer;
 }
 .img-placeholder{
   background: grey;
