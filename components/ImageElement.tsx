@@ -24,9 +24,7 @@ export const ImageElement = (imageProps:any) => {
       observer.observe(placeholderRef.current);
       return () => observer.disconnect();
     }
-  }, [shouldLoad, placeholderRef, folder, getFileRecursively, imageProps]);
-
-  
+  }, [shouldLoad, placeholderRef, folder, getFileRecursively, imageProps.path]);
 
   return (shouldLoad 
     ? <img src={src} {...imageProps} alt="" className='image-item-image' width="800px"

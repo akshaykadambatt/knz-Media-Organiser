@@ -183,8 +183,8 @@ const Home: NextPage = () => {
         A configuration file will be created in the selected folder. Please do not 
         remove the <code>db.json</code> file. No data is sent to the server from your computer, that is,
         your images, files, directory structure, configuration files, file metadata, etc are 
-        all maintained locally, securely. Keep in mind that actions like renaming deletion, etc.
-        will affect your real files and might be irriversible.
+        all maintained locally, securely. Keep in mind that actions like renaming, deletion, etc.
+        will affect your real files and can be irriversible.
       </Typography>
       <FormGroup>
         <FormControlLabel control={<Switch checked={isDarkTheme} onChange={changeTheme} />} label="Dark Mode"/>

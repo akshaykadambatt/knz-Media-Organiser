@@ -157,8 +157,23 @@ const Main = () => {
     } 
     return;
   }, [db?.config?.modifiedDate, cache])
-  const createElements = (db: Record<string, any>) => setItems(db.data.filesData)
-  const refreshDatabase = () => {
+  const createElements = async (db: Record<string, any>) => {
+    setItems({})
+    await new Promise(r => setTimeout(r, 0));
+    setItems(db.data.filesData)
+  }
+  const refreshDatabase = async () => { 
+    /**
+     * Reanalyze the folder to find new files;
+     * * Old file tags, likes, descriptions and other values will be preserved
+     * * New files will be found
+     * * Cache will be rebuild
+     */
+    setCache({"unset":true})
+    const writable2: FileSystemWritableFileStream = await cacheHandle.createWritable({ keepExistingData: false });
+    await writable2.write({ type: "truncate", size: 2 })
+    await writable2.write(JSON.stringify({}));
+    await writable2.close();
     setFilesFound(0)
     init(dbHandle)
   }
@@ -217,12 +232,13 @@ const Main = () => {
       </ButtonBar>
       <Container>
       {addTagsModal&& <AddTagsModal open={addTagsModal} setOpen={setAddTagsModal}/>}
-      <ImageViewer open={viewer} file={file}/>
+      <ImageViewer open={viewer} file={file} createElements={createElements}/>
       <div ref={main} className="imageItemWrapper">
       {Object.entries(items).map(([key, value]: any) => (
         <div key = {key} className = "imageItem">
           <ImageElement 
           data-path = {value.path} 
+          path = {value.path} 
           data-file = {key} 
           data-description = {value.description}
           data-modifieddate = {value.tags.modifiedDate}

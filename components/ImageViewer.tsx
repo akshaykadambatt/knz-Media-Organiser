@@ -28,6 +28,8 @@ export const ImageViewer = (imageProps:any) => {
   const [src, setSrc] = useState("");
   const [prevSrc, setPrevSrc] = useState("");
   const [nextSrc, setNextSrc] = useState("");
+  const [prevKey, setPrevKey] = useState(-1);
+  const [nextKey, setNextKey] = useState(-1);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [currentTags, setCurrentTags] = useState({});
@@ -49,21 +51,59 @@ export const ImageViewer = (imageProps:any) => {
         setDescription(filesData.description);
         setLikes(filesData.likes)
       })
+      
       if(+file != 0){
-        let path = db.data.filesData[+file-1].path.split('/')
-        path.shift()
-        getFileRecursively(path, folder, +file-1)
-        .then((r: any[])=>{
-          setPrevSrc(r[1])
-        })
+        var notfound = 0; 
+        let iter = 1
+        let found=-1;
+        while (notfound==0) {
+          if(db.data.filesData[+file-iter] && file!=+file-iter){
+            found = +file-iter;
+            notfound=1;
+            break;
+          }
+          if(+file-iter < -1) break;
+          iter++;
+        }
+        if(found!=-1){
+          setPrevKey(found)
+          let path = db.data.filesData[found].path.split('/')
+          path.shift()
+          getFileRecursively(path, folder, found)
+          .then((r: any[])=>{
+            setPrevSrc(r[1])
+          })
+        }
+        
       } 
-      if(+file < (Object.entries(db.data.filesData).length-1)){
-        let path = db.data.filesData[+file+1].path.split('/')
-        path.shift()
-        getFileRecursively(path, folder, +file+1)
-        .then((r: any[])=>{
-          setNextSrc(r[1])
-        })
+      /**
+       * There is no way to get the last item in object
+       * So, setting an arbitary value, 100, incase the user deleted 100 images in one go.
+       */
+      let limit = Object.entries(db.data.filesData).length+100
+      if(+file < limit){
+        var notfound = 0; 
+        let iter = 1;
+        let found = 0;
+        while (notfound==0) {
+          if(+file+iter>limit) break;
+          if(db.data.filesData[+file+iter]){
+            found = +file+iter;
+            notfound=1;
+            break;
+          }
+          iter++;
+        }
+        if(found){
+          setNextKey(found)
+          let path = db.data.filesData[found].path.split('/')
+          path.shift()
+          getFileRecursively(path, folder, found)
+          .then((r: any[])=>{
+            setNextSrc(r[1])
+          })
+        }
+        
       }
     }
   }, [viewer, file]);
@@ -77,10 +117,14 @@ export const ImageViewer = (imageProps:any) => {
   }
   const toggleSidebar = () => setSidebar(!sidebar)
   const prevItem = () => {
-    if(+file != 0)setFile(+file-1)
+    // console.log("prevKey", prevKey);
+    // console.log("nextKey", nextKey);
+    if(+file != 0 && prevKey != -1)setFile(prevKey)
   }
   const nextItem = () => {
-    if(+file < (Object.entries(db.data.filesData).length-1)) setFile(+file+1)
+    // console.log("prevKey", prevKey);
+    // console.log("nextKey", nextKey);
+    if(+file < (Object.entries(db.data.filesData).length +100) && nextKey != -1) setFile(nextKey)
   }
   const saveDescription = (event: any) => {
     setDescription(event.target.value)
@@ -103,6 +147,34 @@ export const ImageViewer = (imageProps:any) => {
       db.data.filesData[file].likes = likes;
     }
   }, [viewer, likes]);
+  const deleteFile = async () => {
+      let filesData = db.data.filesData[file]
+      let path = filesData.path.split('/')
+      path.shift()
+      getFileAndDelete(path, folder, filesData.path)
+  }
+  const getFileAndDelete: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, fullpath:any) => {
+    let dir:string = path.shift() || "";
+    if(path.length == 0){
+      // let fileHandle: FileSystemFileHandle = await folderToLookIn.getFileHandle(dir, {})
+      await folderToLookIn.removeEntry(dir);
+      let found; //for Refresh button
+      if(Object.keys(db).length != 0){
+        let keyy = Object.keys(db.data.filesData).find(key => {
+          if(db.data.filesData[key].path == fullpath){
+            delete db.data.filesData[key]
+          }
+        }
+        ) || -1;
+      } 
+      imageProps.createElements(db)
+      nextItem()
+      return
+    }else{
+      let newFolder = await folderToLookIn.getDirectoryHandle(dir,{create: true})
+      return getFileAndDelete(path, newFolder)
+    }
+  }
   return (viewer 
     ? <Card className="image-viewer" ref={focusRef} onKeyDown={keyDownHandler} tabIndex={0}
     sx={{
@@ -120,6 +192,7 @@ export const ImageViewer = (imageProps:any) => {
             onClick={likeImage} 
           />
           <Chip label="Open Sidebar" onClick={toggleSidebar}  />
+          <Chip label="Delete" onClick={deleteFile} />
           <Chip label="Close" onClick={close} />
         </Stack>
         </TopBar>
