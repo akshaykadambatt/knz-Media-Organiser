@@ -41,9 +41,9 @@ export const ImageViewer = (imageProps:any) => {
   const NavigationRightElem = createRef<HTMLButtonElement>()
   const focusRef = createRef<HTMLDivElement>()
   useEffect(()=>{
-    console.log("prevKey",prevKey);
-    console.log("file",file, db.data?.filesData[file]?.path, db.data?.filesData);
-    console.log("nextKey",nextKey);
+    // console.log("prevKey",prevKey);
+    // console.log("file",file, db.data?.filesData[file]?.path, db.data?.filesData);
+    // console.log("nextKey",nextKey);
     if(viewer && db.data.filesData[prevKey]){
       let path = db.data.filesData[prevKey].path.split('/')
       path.shift()
@@ -62,8 +62,6 @@ export const ImageViewer = (imageProps:any) => {
     }
   },[nextKey])
   useEffect(() => {
-    console.log("db.data.filesData[file] ", db.data?.filesData[file]);
-    
     if(viewer && db.data?.filesData[file] != undefined){
       focusRef.current?.focus()
       let filesData = db.data.filesData[file]
@@ -78,59 +76,6 @@ export const ImageViewer = (imageProps:any) => {
       })
       setPrevKey(+file-1)
       setNextKey(+file+1)
-      // if(+file != 0){
-      //   var notfound = 0; 
-      //   let iter = 1
-      //   let found=-1;
-      //   while (notfound==0) {
-      //     if(db.data.filesData[+file-iter] && file!=+file-iter){
-      //       found = +file-iter;
-      //       notfound=1;
-      //       break;
-      //     }
-      //     if(+file-iter < -1) break;
-      //     iter++;
-      //   }
-      //   if(found!=-1){
-      //     setPrevKey(found)
-      //     let path = db.data.filesData[found].path.split('/')
-      //     path.shift()
-      //     getFileRecursively(path, folder, found)
-      //     .then((r: any[])=>{
-      //       setPrevSrc(r[1])
-      //     })
-      //   }
-        
-      // } 
-      // /**
-      //  * There is no way to get the last item in object
-      //  * So, setting an arbitary value, 100, incase the user deleted 100 images in one go.
-      //  */
-      // let limit = Object.entries(db.data.filesData).length+100
-      // if(+file < limit){
-      //   var notfound = 0; 
-      //   let iter = 1;
-      //   let found = 0;
-      //   while (notfound==0) {
-      //     if(+file+iter>limit) break;
-      //     if(db.data.filesData[+file+iter]){
-      //       found = +file+iter;
-      //       notfound=1;
-      //       break;
-      //     }
-      //     iter++;
-      //   }
-      //   if(found){
-      //     setNextKey(found)
-      //     let path = db.data.filesData[found].path.split('/')
-      //     path.shift()
-      //     getFileRecursively(path, folder, found)
-      //     .then((r: any[])=>{
-      //       setNextSrc(r[1])
-      //     })
-      //   }
-        
-      // }
     }else setViewer(false)
   }, [viewer, file, updateViewer]);
   const saveTags = async (event: any) => {
@@ -146,13 +91,6 @@ export const ImageViewer = (imageProps:any) => {
     if(+file != 0 && prevKey != -1)setFile(prevKey)
   }
   const nextItem = () => {
-    console.log("insider nextitem", +file < (db.data.filesData.length-1) && nextKey != -1);
-    console.log("+file < (db.data.filesData.length-1)", +file < (db.data.filesData.length-1));
-    console.log("nextKey != -1", nextKey != -1);
-    console.log("nextKey", nextKey);
-    console.log("+file", +file);
-    console.log("(db.data.filesData.length-1)", (db.data.filesData.length-1));
-    
     if(+file < (db.data.filesData.length-1) && nextKey != -1) setFile(nextKey)
   }
   const saveDescription = (event: any) => {
@@ -178,31 +116,18 @@ export const ImageViewer = (imageProps:any) => {
   }, [viewer, likes]);
   const deleteFile = async () => {
       let filesData = db.data.filesData[file]
-      console.log("deleteing", file, filesData);
-      
       let path = filesData.path.split('/')
       path.shift()
-      getFileAndDelete(path, folder, filesData.path)
+      getFileAndDelete(path, folder)
   }
-  const getFileAndDelete: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, fullpath:any) => {
-    console.log("delete path ", path);
+  const getFileAndDelete: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle) => {
     let dir:string = path.shift() || "";
-    
     if(path.length == 0){
       await folderToLookIn.removeEntry(dir);
-      if(Object.keys(db).length != 0){
-        let keyFound = db.data.filesData.find((item: any, key:any) => {
-          if(item.path == fullpath) {
-            console.log(item.path, fullpath);
-            return key-1
-          }
-        }) || -1;
-        db.data.filesData.splice(file, 1);
-        cache.splice(file, 1);
-        setCache(cache)
-      }
+      db.data.filesData.splice(file, 1);
+      cache.splice(file, 1);
+      setCache(cache)
       imageProps.createElements(db)
-      console.log("after delete db.data.filesData ", db.data.filesData);
       setUpdateViewer((updateViewer) => updateViewer + 1)
       return;
     }else{

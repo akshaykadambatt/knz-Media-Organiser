@@ -144,7 +144,6 @@ const Main = () => {
       directory.pop()
     }
     await folderHandler(folder).then(()=>data)
-    console.log(db);
     
     return(data);
     // return Object.assign({}, data)

@@ -162,8 +162,6 @@ const Home: NextPage = () => {
           await writable.close();
           const writable2: FileSystemWritableFileStream = await cacheHandle.createWritable({ keepExistingData: false });
           await writable2.write({ type: "truncate", size: 2 })
-          console.log("cachecachecache ", JSON.stringify(cache), cache);
-          
           await writable2.write(JSON.stringify(cache));
           await writable2.close();
         console.log("sync complete");
