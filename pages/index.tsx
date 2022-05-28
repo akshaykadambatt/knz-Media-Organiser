@@ -98,13 +98,18 @@ const Home: NextPage = () => {
   const [saving, setSaving] = useState(false);
   const [file, setFile] = useState(0);
   const [cache, setCache] = useState(["unset"] as any);
+  const [selectedItems, setSelectedItems] = useState([] as any[]);
+  const [selectItems, setSelectItems] = useState(false);
   const getFileRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number, full: boolean = false) => {
     // let dir:string = path.shift() || "";
     if(cache[index]){
       if(cache[index][0]==null && full===true){
+        console.log("inside full=true and cache index 0 miss", cache[index]);
         cache[index][0] = await getBlobRecursively(path,folderToLookIn,index)
-        setCache(cache)
-      }else //console.log("cache hit");
+        console.log("inside full=true and cache index 0 miss", cache[index][0]);
+        await setCache(cache)
+        return cache[index]
+      }else console.log("cache hit");
       return cache[index]
     }else{
       let fullImage = await getBlobRecursively(path,folderToLookIn,index)
@@ -201,7 +206,9 @@ const Home: NextPage = () => {
         getFileRecursively, syncWithFileSystem,
         cache, setCache,
         saving, setSaving,
-        cacheHandle, setCacheHandle
+        cacheHandle, setCacheHandle,
+        selectItems, setSelectItems,
+        selectedItems, setSelectedItems
         }}>
         <Main/>
       </KmoContext.Provider>

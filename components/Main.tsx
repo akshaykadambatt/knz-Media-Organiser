@@ -13,10 +13,13 @@ import { CircularProgress, Container, FormControlLabel, FormGroup, Switch } from
 import {ImageViewer} from "./ImageViewer"
 import AddTagsModal from "./AddTags"
 import { Skeleton } from "@mui/material";
-import { IoFilterSharp, IoAlbumsOutline } from 'react-icons/io5';
+import { IoFilterSharp, IoAlbumsOutline, IoCloseOutline } from 'react-icons/io5';
+import { BsCheck2 } from 'react-icons/bs';
+import { IoIosSearch } from 'react-icons/io';
 import { MdOutlineSync, MdTag, MdRefresh, MdOutlineFolderOpen } from 'react-icons/md';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material';
+import finalPropsSelectorFactory from "react-redux/es/connect/selectorFactory";
 
 declare global {
     interface Window {
@@ -41,9 +44,14 @@ const Main = () => {
     cache, setCache,
     saving, setSaving,
     cacheHandle, setCacheHandle,
-    syncWithFileSystem
+    syncWithFileSystem,
+    selectedItems, setSelectedItems,
+    selectItems, setSelectItems
   } = useKmoContext();
   const theme = useTheme();
+  const [albumSettings, setAlbumSettings] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [hideMainButtons, setHideMainButtons] = useState(false);
   const main = React.createRef<HTMLInputElement>()
   //picker -> save folderDirHandle to state
   const openFolderDirHandle =async () => {
@@ -93,7 +101,8 @@ const Main = () => {
         name: found? db.config.name : "My Gallery",
         folderName: dbHandle.name,
         tags: found? db.config.tags : {},
-        modifiedDate: + new Date()
+        modifiedDate: + new Date(),
+        activeItem: 0
       },
       data:{
         filesData
@@ -181,7 +190,23 @@ const Main = () => {
   }
   const newAlbumStart = () => {
     console.log('new album start');
-    
+    setSelectItems(true)
+    setAlbumSettings(true)
+    setHideMainButtons(true)
+  }
+  const cancelNewAlbumStart = () => {
+    console.log('cancel new album start');
+    setSelectItems(false)
+    setAlbumSettings(false)
+    setHideMainButtons(false)
+  }
+  const showFiltersSection = () => {
+    setShowFilters(true)
+    setHideMainButtons(true)
+  }
+  const hideFiltersSection = () => {
+    setShowFilters(false)
+    setHideMainButtons(false)
   }
   return (<>
       <Container>
@@ -199,11 +224,11 @@ const Main = () => {
       }
       </Container>
       <ButtonBar>
-      <Stack spacing={2} sx={{paddingBlock:3}} direction="row">
+      <Stack spacing={2} sx={{paddingBlock:3, alignItems: "center"}} direction="row">
       {(db.config)? null:
         <Button variant="contained" onClick={openFolderDirHandle} startIcon={<MdOutlineFolderOpen />}>Set Folder</Button>
       }
-      {db.config&& 
+      {db.config && !hideMainButtons && 
       <>
         <Button variant="contained" onClick={refreshDatabase} startIcon={<MdRefresh />}>
           {filesFound != 0? "Analyzed "+filesFound:"Refresh"}
@@ -211,8 +236,10 @@ const Main = () => {
         <Button variant="contained" onClick={()=>setAddTagsModal(!addTagsModal)} startIcon={<MdTag />}>Tag Settings</Button>
         <Button variant="contained" onClick={syncWithFileSystem} startIcon={<MdOutlineSync />}>Sync with filesystem</Button>
         <Button variant="contained" onClick={newAlbumStart} startIcon={<IoAlbumsOutline />}> New Album</Button>
-        <Button variant="contained" onClick={syncWithFileSystem} startIcon={<IoFilterSharp />}> Filter</Button>
-        {false &&
+        <Button variant="contained" onClick={showFiltersSection} startIcon={<IoFilterSharp />}> Filter</Button>
+      </>
+      }
+      {showFilters &&
         <>
           <TextField size="small" label="Search" variant="outlined" />
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
@@ -231,27 +258,33 @@ const Main = () => {
               <MenuItem value={30}>Thirty</MenuItem>
             </Select>
           </FormControl>
+          <Button variant="contained" onClick={newAlbumStart} startIcon={<IoIosSearch />}> Search</Button>
+          <Button onClick={hideFiltersSection} startIcon={<IoCloseOutline />}> Cancel</Button>
         </>
         }
-        
-      </>
-      }
+      {albumSettings && 
+      <>
+        <TextField size="small" label="Album Name"></TextField>
+        <Button variant="contained" onClick={newAlbumStart} startIcon={<BsCheck2 />}> Create Album</Button>
+        <Button onClick={cancelNewAlbumStart} startIcon={<IoCloseOutline />}> Cancel</Button>
+      </>}
       </Stack>
       </ButtonBar>
       <Container>
       {addTagsModal&& <AddTagsModal open={addTagsModal} setOpen={setAddTagsModal}/>}
       <ImageViewer open={viewer} file={file} createElements={createElements}/>
-      <div ref={main} className="imageItemWrapper">
+      <div ref={main} className="imageItemWrapper" style={{marginBottom:"100px"}}>
       {Object.entries(items).map(([key, value]: any) => (
         <div key = {key} className = "imageItem">
           <ImageElement 
-          data-path = {value.path} 
           path = {value.path} 
-          data-file = {key} 
-          data-description = {value.description}
-          data-modifieddate = {value.tags.modifiedDate}
-          onClick = {()=>{setViewer(true);setFile(key);}}
-          album={1}
+          file = {key} 
+          description = {value.description}
+          modifieddate = {value.tags.modifiedDate}
+          onClick = {()=>{if(selectItems==false){setViewer(true);setFile(key);}}}
+          album={0}
+          selectedItems={selectedItems} setSelectedItems={setSelectedItems}
+          selectItems={selectItems}
            />
         </div>
       ))}
@@ -268,4 +301,5 @@ const ButtonBar = styled(Container)(({ theme }) => (`
   backdrop-filter:blur(10px);
   position: sticky;
   top:-5px;
+  z-index:3;
 `))

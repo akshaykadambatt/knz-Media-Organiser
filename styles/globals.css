@@ -56,7 +56,26 @@ a {
     left: 0;
     z-index: 10;
 }
-
+.checker-wrapper{
+  transition: all .3s;
+  height: 20%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+}
+.checked-image-item{
+  background-color: #00fc3ba1;
+  z-index: 1;
+  opacity: 1;
+  border-radius: 5px;
+}
+.album-wrapper{
+  position: relative;
+  top:-100%;
+}
+.checked-album-wrapper{
+  z-index: -1;
+}
 .image-viewer-image-holder div:first-child{
   overflow: visible;
 }

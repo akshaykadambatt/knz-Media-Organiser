@@ -4,10 +4,12 @@ import Image from "next/image"
 import { Box } from '@mui/material';
 import { alpha } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { BsCheck2 } from "react-icons/bs";
 
 export const ImageElement = (imageProps:any) => {
   const { folder, setFolder,getFileRecursively } = useKmoContext();
   const [shouldLoad, setShouldLoad] = useState(false);
+  const [checked, setChecked] = useState(false);
   const [src, setSrc] = useState("");
   const placeholderRef = useRef(null);
 
@@ -15,9 +17,9 @@ export const ImageElement = (imageProps:any) => {
     if (!shouldLoad && placeholderRef.current) {
       const observer = new IntersectionObserver(([{ intersectionRatio }]) => {
         if (intersectionRatio > 0) {
-          let path = imageProps['data-path'].split('/')
+          let path = imageProps.path.split('/')
           path.shift()
-          getFileRecursively(path, folder, imageProps['data-file'])
+          getFileRecursively(path, folder, imageProps.file)
           .then((r: any[])=>{
             setSrc(r[1])
             setShouldLoad(true)
@@ -28,23 +30,37 @@ export const ImageElement = (imageProps:any) => {
       return () => observer.disconnect();
     }
   }, [shouldLoad, placeholderRef, folder, getFileRecursively, imageProps.path]);
-
-  return (shouldLoad 
-    ? 
-    <>
-    <img src={src} {...imageProps} alt="" 
-    className={`image-item-image ${imageProps.album? 'album-image-item':null}`} 
-    width="800px"
-    height="456.8px"/> 
-    {imageProps.album && <>
-    <AlbumOne>s</AlbumOne><AlbumTwo>a</AlbumTwo>
-    </>}
-    </>
+  useEffect(() => {
+    if(imageProps.selectItems == false) setChecked(false)
+    return;
+  }, [imageProps.selectItems]);
+  const checkItem = () => {
+    if(imageProps.selectItems == false) return;
+    setChecked(!checked)
+    console.log(checked);
+    
+  }
+  return (shouldLoad? 
+    <div onClick={checkItem}  style={{height:"100%"}}>
+      <div className={`checker-wrapper ${checked? "checked-image-item":""}`}><BsCheck2 /></div>
+      <div className={`album-wrapper ${checked? "checked-album-wrapper":""}`} style={{height:"100%"}}>
+        <img src={src}
+        data-path = {imageProps.path} 
+        data-file = {imageProps.file} 
+        data-description = {imageProps.description}
+        data-modifieddate = {imageProps.modifieddate}
+        onClick={imageProps.onClick}
+        alt="" 
+        className={`image-item-image ${imageProps.album? 'album-image-item':null}`} 
+        width="800px"
+        height="456.8px"/>
+        {imageProps.album? <><AlbumOne>s</AlbumOne><AlbumTwo>a</AlbumTwo></>:null}
+      </div>
+      
+    </div>
     : <div className="img-placeholder" ref={placeholderRef}/>
   );
 };
-
-
 
 const AlbumOne = styled(Box)(({ theme }) => (`
   position: relative;

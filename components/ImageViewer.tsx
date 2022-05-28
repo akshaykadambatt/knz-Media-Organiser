@@ -8,6 +8,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import { BsHeart, BsHeartFill } from "react-icons/bs";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import TextField from '@mui/material/TextField';
@@ -161,7 +162,7 @@ export const ImageViewer = (imageProps:any) => {
             <ImageViewerWrapper className="image-viewer-image-holder">
             <TransformWrapper onZoom={zoomStarted} onPanning={zoomStarted}>
               <TransformComponent>
-                <img className="image-viewer-image" src={src} {...imageProps}/>
+                <img className="image-viewer-image" src={src}/>
               </TransformComponent>
             </TransformWrapper>
               <Sidebar sx={{
@@ -188,6 +189,7 @@ export const ImageViewer = (imageProps:any) => {
         <BottomBar p={3}>
           {prevSrc && 
           <PrevImage onClick={prevItem} disableRipple ref={NavigationLeftElem} >
+            <IoIosArrowBack size={70} style={{color:alpha(theme.palette.text.primary,.7)}}/>
             <img className="navigation-image" src={prevSrc} alt="" />
           </PrevImage>
           }
@@ -195,6 +197,7 @@ export const ImageViewer = (imageProps:any) => {
           {nextSrc &&
           <NextImage onClick={nextItem} disableRipple ref={NavigationRightElem}>
             <img className="navigation-image" src={nextSrc} alt="" />
+            <IoIosArrowForward size={70} style={{color:alpha(theme.palette.text.primary,.7)}}/>
           </NextImage>
           }
         </BottomBar>
@@ -246,21 +249,29 @@ const NextImage = styled(Button)(`
   height:80px;
   width:80px;
   position: absolute;
-  bottom:10px;
-  right:20px;
+  bottom:26px;
+  right:27px;
   transition: all .3s;
   opacity: 1;
-  align-items: flex-end;
+  align-items:center;
+  :hover{
+    width:140px;
+    background: transparent;
+  }
 `)
 const PrevImage = styled(Button)(`
   height:80px;
   width:80px;
   position: absolute;
-  bottom:10px;
-  left:20px;
-  transition: all .3s;
+  bottom:26px;
+  left:27px;
+  transition: all .4s;
   opacity: 1;
-  align-items: flex-end;
+  align-items:center;
+  :hover{
+    background: transparent;
+    width:140px;
+  }
 `)
 const ImageViewerWrapper = styled(Box)(`
 display: flex;

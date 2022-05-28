@@ -23,6 +23,10 @@ export type KmoContextType = {
     setCache: (Data: any) => void;
     saving: boolean;
     setSaving: (Data: boolean) => void;
+    selectItems: boolean;
+    setSelectItems: (Data: boolean) => void;
+    selectedItems: any[];
+    setSelectedItems: (Data: any[]) => void;
 }
 
 export const KmoContext = createContext<KmoContextType>({ 
@@ -45,6 +49,10 @@ export const KmoContext = createContext<KmoContextType>({
     cache: [], 
     setCache: folder => console.warn('no db provider'),
     saving: false, 
-    setSaving: folder => console.warn('no db provider')
+    setSaving: folder => console.warn('no db provider'),
+    selectedItems: [], 
+    setSelectedItems: data => console.warn('no db provider'),
+    selectItems: false, 
+    setSelectItems: data => console.warn('no db provider'),
 });
 export const useKmoContext = () => useContext(KmoContext);
