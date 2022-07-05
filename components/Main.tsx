@@ -276,6 +276,7 @@ const Main = () => {
       <div ref={main} className="imageItemWrapper" style={{marginBottom:"100px"}}>
       {Object.entries(items).map(([key, value]: any) => (
         <div key = {key} className = "imageItem">
+          <code>{JSON.stringify(value)}</code>
           <ImageElement 
           path = {value.path} 
           file = {key} 

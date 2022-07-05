@@ -41,7 +41,7 @@ export const ImageElement = (imageProps:any) => {
     
   }
   return (shouldLoad? 
-    <div onClick={checkItem}  style={{height:"100%"}}>
+    <div onClick={checkItem}  style={{height:"100%", width:"100px"}}>
       <div className={`checker-wrapper ${checked? "checked-image-item":""}`}><BsCheck2 /></div>
       <div className={`album-wrapper ${checked? "checked-album-wrapper":""}`} style={{height:"100%"}}>
         <img src={src}

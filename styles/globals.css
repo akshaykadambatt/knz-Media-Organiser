@@ -32,16 +32,17 @@ a {
   bottom:-15%;
 }
 .imageItemWrapper{
-  display: grid;
+  /* display: grid; */
   grid-template-columns: repeat(15,1fr);
   gap: 3px;
   justify-items: center;
 }
 .imageItem{
-  height: 70px;
-  width: 100%;
+  /* height: 70px; */
+  /* width: 100%; */
   image-rendering:optimizeSpeed;
   cursor: pointer;
+  display: inline-block;
 }
 .img-placeholder{
   background: grey;
