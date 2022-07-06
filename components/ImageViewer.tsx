@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import { useState, useRef, useEffect, SetStateAction, createRef, HTMLInputTypeAttribute } from 'react';
+import { useState, useRef, useEffect, SetStateAction, createRef, HTMLInputTypeAttribute, ReactNode, SyntheticEvent } from 'react';
 import ReactDOM from 'react-dom';
 import { useKmoContext } from './context';
 import Chip from '@mui/material/Chip';
@@ -13,8 +13,11 @@ import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import TextField from '@mui/material/TextField';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { alpha, Autocomplete, Card } from '@mui/material';
+import { alpha, Autocomplete,createFilterOptions, Card, FilterOptionsState } from '@mui/material';
 import { useTheme } from '@mui/material';
+import Skeleton from '@mui/material/Skeleton';
+
+const filter = createFilterOptions();
 
 export const ImageViewer = (imageProps:any) => {
   const { 
@@ -35,7 +38,7 @@ export const ImageViewer = (imageProps:any) => {
   const [updateViewer, setUpdateViewer] = useState(-1);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
-  const [currentTags, setCurrentTags] = useState({});
+  const [currentTags, setCurrentTags] = useState({} as any);
   const [alignSidebarToRight, setAlignSidebarToRight] = useState(false);
   const [likes, setLikes] = useState(0);
   const NavigationLeftElem = createRef<HTMLButtonElement>()
@@ -74,6 +77,7 @@ export const ImageViewer = (imageProps:any) => {
         setSrc(r[0])
         setDescription(filesData.description);
         setLikes(filesData.likes)
+        setCurrentTags(filesData.tags)
       })
       setPrevKey(+file-1)
       setNextKey(+file+1)
@@ -82,6 +86,14 @@ export const ImageViewer = (imageProps:any) => {
   const saveTags = async (event: any) => {
     await setCurrentTags(event)
     db.data.filesData[file].tags = currentTags
+    console.log(currentTags, tags);
+    Object.keys(tags).map((key, i)=>
+     {
+      console.log(currentTags[Object.keys(tags[i])[0]])
+      console.log(tags[i][Object.keys(tags[i])[0] as string])
+    }
+    )
+    
   }
   const close = () => {
     setViewer(false)
@@ -165,21 +177,21 @@ export const ImageViewer = (imageProps:any) => {
                 <img className="image-viewer-image" src={src}/>
               </TransformComponent>
             </TransformWrapper>
-              <Sidebar sx={{
+            <Sidebar sx={{
                 width:sidebar?"28vw":0,
                 padding:sidebar?"10px":0,
                 position: alignSidebarToRight? "absolute":"static",
                 right:0,
-                }} >
+                }} key={file}>
                 <SidebarContent 
                   sidebar={sidebar} 
                   description={description} 
-                  saveDescription={saveDescription}
                   tags={tags}
-                  setTags={setTags}
                   currentTags={currentTags}
-                  setCurrentTags={saveTags}
                   likes={likes}
+                  setTags={setTags}
+                  saveDescription={saveDescription}
+                  setCurrentTags={saveTags}
                   setLikes={setLikes}
                   />
               </Sidebar>
@@ -206,6 +218,67 @@ export const ImageViewer = (imageProps:any) => {
   );
 };
 
+export const SidebarContent = (data:any) => {
+  const [render, setRender] = useState(false);
+  const theme = useTheme();
+  const descriptionRef = createRef<HTMLTextAreaElement>()
+  useEffect(() => {
+    setRender(false)
+    setTimeout(() => setRender(true), 10)
+  }, [data.currentTags]);
+  useEffect(() => {
+    descriptionRef.current!.style.height = "0px";
+    const scrollHeight = descriptionRef.current!.scrollHeight;
+    descriptionRef.current!.style.height = scrollHeight + "px";
+  }, [data.description]);
+  const updateValue = (newInputValue:any, key:any) => {
+    console.log(newInputValue);
+    
+    data.currentTags[key] = newInputValue
+    data.setCurrentTags(data.currentTags)
+  }
+  const handleLikes = (event:any) => {
+    data.setLikes(+event.target.value)
+  }
+  return(
+    <>
+      <Box pt={2} key={data.key} className="image-viewer-sidebar" sx={{
+        width: "26vw !important",color: theme.palette.text.primary,opacity:data.sidebar?1:0,
+        transform: data.sidebar?"translateY(0px)":"translateY(40px)",
+        transition: data.sidebar?"all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s .3s":"all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s"
+        }}>
+          <Stack spacing={2} pb={5}>
+            <Description placeholder="Description" value={data.description} ref={descriptionRef} onChange={data.saveDescription}/>
+            <TextField type="number" label="Likes" value={data.likes} onChange={handleLikes} inputProps={{ min: 0 }}></TextField>
+            {render?Object.keys(data.tags).map((key, i)=>(
+              <div key={key}><>
+                <Autocomplete fullWidth disablePortal multiple
+                  renderInput={(params) => <TextField {...params} label={Object.keys(data.tags[i])[0]} />}
+                  defaultValue={data.currentTags[Object.keys(data.tags[i])[0]]}
+                  options={['The Godfather', 'Pulp Fiction']}
+                  onChange={(event, newValue: string[])=>updateValue(newValue,Object.keys(data.tags[i])[0])}
+                  filterOptions={(options, params:FilterOptionsState<string>) => {
+                    const filtered = filter(options, params as FilterOptionsState<unknown>);
+                    if (params.inputValue !== '') filtered.push(`${params.inputValue.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())}`);
+
+                    return filtered as string[];
+                  }}
+                  key={key+data.key}
+                  freeSolo
+                  />
+              </></div>
+            ))
+            :<>
+              {Object.keys(data.tags).map((key)=>(
+                <Skeleton variant="rectangular" key={key+"skeleton"} width={360} height={58} animation="wave" />
+              ))}
+            </>}
+          </Stack>
+      </Box>
+    </>
+  )
+}
+
 const TopBar = styled(Stack)(({ theme }) => (`
   position: fixed;
   top:0;
@@ -226,15 +299,14 @@ const TopBar = styled(Stack)(({ theme }) => (`
 `));
 const BottomBar = styled(Box)(({ theme }) => (`
   position: fixed;
-  padding-left:3em;
-  padding-right:4em;
+  text-align:center;
   bottom:0;
   width: inherit;
-  height:130px;
+  height:83px;
   background: transparent;
   transition: all .3s;
   opacity: 0.3;
-  transform: translatey(70px);
+  transform: translatey(30px);
   backdrop-filter:blur(10px);
   transition-delay: .5s;
   :hover{
@@ -246,11 +318,11 @@ const BottomBar = styled(Box)(({ theme }) => (`
 `))
 
 const NextImage = styled(Button)(`
-  height:80px;
+  height:60px;
   width:80px;
   position: absolute;
-  bottom:26px;
-  right:27px;
+  bottom:12px;
+  right:33px;
   transition: all .3s;
   opacity: 1;
   align-items:center;
@@ -260,11 +332,11 @@ const NextImage = styled(Button)(`
   }
 `)
 const PrevImage = styled(Button)(`
-  height:80px;
+  height:60px;
   width:80px;
   position: absolute;
-  bottom:26px;
-  left:27px;
+  bottom:12px;
+  left:19px;
   transition: all .4s;
   opacity: 1;
   align-items:center;
@@ -300,56 +372,6 @@ const Sidebar = styled(Card)(`
     background-color: #555;
   }
 `);
-
-export const SidebarContent = (data:any) => {
-  const theme = useTheme();
-  const descriptionRef = createRef<HTMLTextAreaElement>()
-  useEffect(() => {
-    descriptionRef.current!.style.height = "0px";
-    const scrollHeight = descriptionRef.current!.scrollHeight;
-    descriptionRef.current!.style.height = scrollHeight + "px";
-  }, [data.description]);
-  const updateValue = (newInputValue:any, key:any) => {
-    console.log(newInputValue);
-    
-    data.currentTags[key] = newInputValue
-    data.setCurrentTags(data.currentTags)
-  }
-  const handleLikes = (event:any) => {
-    data.setLikes(+event.target.value)
-  }
-  return(
-    <>
-      <Box pt={2} className="image-viewer-sidebar" sx={{
-        width: "26vw !important",
-        color: theme.palette.text.primary,
-        opacity:data.sidebar?1:0,
-        transform: data.sidebar?"translateY(0px)":"translateY(40px)",
-        transition: data.sidebar?"all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s .3s":
-        "all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s"
-        }}>
-          <Stack spacing={2} pb={5}>
-            <Description aria-label="empty textarea" placeholder="Description"
-          value={data.description} ref={descriptionRef} onChange={data.saveDescription}
-        />
-        <TextField type="number" label="Likes" value={data.likes} onChange={handleLikes} inputProps={{ min: 0 }}></TextField>
-        {Object.keys(data.tags).map((key, i)=>(
-          <div key={key}><>
-            <Autocomplete fullWidth disablePortal multiple
-            sx={{ input: { color: 'red' } }}
-              renderInput={(params) => <TextField {...params} label={Object.keys(data.tags[i])[0]} />}
-              options={['The Godfather', 'Pulp Fiction']}
-              onChange={(event, newValue: string[])=>updateValue(newValue,Object.keys(data.tags[i])[0])}
-              />
-          </></div>
-        ))}
-          </Stack>
-        
-      </Box>
-    </>
-  )
-}
-
 const Description = styled("textarea")(({ theme }) => ({
   width: "100%", 
   fontFamily:"inherit", 

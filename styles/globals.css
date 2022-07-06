@@ -32,13 +32,15 @@ a {
   bottom:-15%;
 }
 .imageItemWrapper{
-  /* display: grid; */
-  grid-template-columns: repeat(15,1fr);
+  display: grid;
+  grid-template-columns: repeat(10,1fr);
   gap: 3px;
   justify-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-rows: repeat(13, 120px);
+  grid-auto-flow: dense;
 }
 .imageItem{
-  /* height: 70px; */
   /* width: 100%; */
   image-rendering:optimizeSpeed;
   cursor: pointer;
@@ -89,7 +91,7 @@ a {
   object-fit: cover;
   border-radius:8px;
   width:100px;
-  height:100px;
+  height:57px;
 }
 code{
   background: #8080803d;

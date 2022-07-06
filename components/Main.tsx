@@ -100,7 +100,7 @@ const Main = () => {
       config:{
         name: found? db.config.name : "My Gallery",
         folderName: dbHandle.name,
-        tags: found? db.config.tags : {},
+        tags: found? db.config.tags : [],
         modifiedDate: + new Date(),
         activeItem: 0
       },
@@ -142,7 +142,7 @@ const Main = () => {
             data.push({
               path: directory.join('/') + '/' + entry.name,
               modifiedDate: file.lastModified,
-              tags: found? found.tags: {},
+              tags: found? found.tags: [],
               description: found? found.description: "",
               likes: found? found.likes: 0
             });
@@ -222,6 +222,7 @@ const Main = () => {
         </Typography>
       </>
       }
+      <code>{JSON.stringify(db.config)}</code>
       </Container>
       <ButtonBar>
       <Stack spacing={2} sx={{paddingBlock:3, alignItems: "center"}} direction="row">
@@ -276,7 +277,7 @@ const Main = () => {
       <div ref={main} className="imageItemWrapper" style={{marginBottom:"100px"}}>
       {Object.entries(items).map(([key, value]: any) => (
         <div key = {key} className = "imageItem">
-          <code>{JSON.stringify(value)}</code>
+          {/* <code>{JSON.stringify(value)}</code> */}
           <ImageElement 
           path = {value.path} 
           file = {key} 
