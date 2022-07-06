@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import { useState, useRef, useEffect, SetStateAction, createRef, HTMLInputTypeAttribute, ReactNode, SyntheticEvent } from 'react';
+import { useState, useRef, useEffect, SetStateAction, createRef, HTMLInputTypeAttribute, ReactNode, SyntheticEvent, useId } from 'react';
 import ReactDOM from 'react-dom';
 import { useKmoContext } from './context';
 import Chip from '@mui/material/Chip';
@@ -38,7 +38,7 @@ export const ImageViewer = (imageProps:any) => {
   const [updateViewer, setUpdateViewer] = useState(-1);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
-  const [currentTags, setCurrentTags] = useState({} as any);
+  const [currentTags, setCurrentTags] = useState([] as any[]);
   const [alignSidebarToRight, setAlignSidebarToRight] = useState(false);
   const [likes, setLikes] = useState(0);
   const NavigationLeftElem = createRef<HTMLButtonElement>()
@@ -85,15 +85,7 @@ export const ImageViewer = (imageProps:any) => {
   }, [viewer, file, updateViewer]);
   const saveTags = async (event: any) => {
     await setCurrentTags(event)
-    db.data.filesData[file].tags = currentTags
-    console.log(currentTags, tags);
-    Object.keys(tags).map((key, i)=>
-     {
-      console.log(currentTags[Object.keys(tags[i])[0]])
-      console.log(tags[i][Object.keys(tags[i])[0] as string])
-    }
-    )
-    
+    // db.data.filesData[file].tags = currentTags
   }
   const close = () => {
     setViewer(false)
@@ -154,7 +146,7 @@ export const ImageViewer = (imageProps:any) => {
       background:`linear-gradient(0deg, ${theme.palette.background.default}, ${alpha(theme.palette.background.default,.841)})`
     }}
     >
-      <TopBar direction="row" justifyContent="space-between" spacing={1} p={3}>
+      <TopBar direction="row" justifyContent="space-between" spacing={1} px={3} pt={1.2} pb={1.2}>
         <Stack direction="row" spacing={1}>
           <Chip label="Close" onClick={close} />
         </Stack>
@@ -178,7 +170,7 @@ export const ImageViewer = (imageProps:any) => {
               </TransformComponent>
             </TransformWrapper>
             <Sidebar sx={{
-                width:sidebar?"28vw":0,
+                width:sidebar?"33.5vw":0,
                 padding:sidebar?"10px":0,
                 position: alignSidebarToRight? "absolute":"static",
                 right:0,
@@ -218,58 +210,89 @@ export const ImageViewer = (imageProps:any) => {
   );
 };
 
-export const SidebarContent = (data:any) => {
+export const SidebarContent = ({sidebar, description, tags, currentTags, likes, setTags, saveDescription, setCurrentTags, setLikes}:any) => {
   const [render, setRender] = useState(false);
   const theme = useTheme();
-  const descriptionRef = createRef<HTMLTextAreaElement>()
+  const descriptionRef = createRef<HTMLTextAreaElement>();
+  const { getUniqueId } = useKmoContext();
   useEffect(() => {
     setRender(false)
     setTimeout(() => setRender(true), 10)
-  }, [data.currentTags]);
+    console.log("tags,currentTags",tags,currentTags);
+    
+    
+  }, [currentTags]);
   useEffect(() => {
     descriptionRef.current!.style.height = "0px";
     const scrollHeight = descriptionRef.current!.scrollHeight;
     descriptionRef.current!.style.height = scrollHeight + "px";
-  }, [data.description]);
-  const updateValue = (newInputValue:any, key:any) => {
-    console.log(newInputValue);
+  }, [description]);
+  const updateValue = (newInputValue:any, index:any) => {
+    newInputValue.map((item:string)=>{
+      let found = tags[index].values.some((el:TagItem) => el.name === item);
+      if (!found) tags[index].values.push({name: item, id: getUniqueId()}) 
+      setTags(tags)
+      tags[index].values.map((ii:TagItem)=>{
+        if(ii.name == item){
+          console.log('tags',tags, currentTags, ii.id);
+          currentTags.push(ii.id)
+        }
+      })
+      console.log('tags',tags, currentTags);
+      setCurrentTags(currentTags)
+    })
+    //console.log('consssssssssssool',getTagNameFromId("idbw0kk2n","id123vbfwm"));
     
-    data.currentTags[key] = newInputValue
-    data.setCurrentTags(data.currentTags)
+    // currentTags[index] = newInputValue
   }
   const handleLikes = (event:any) => {
-    data.setLikes(+event.target.value)
+    setLikes(+event.target.value)
   }
+  const getTagNameFromId = (tagId:string, itemId:string) => {
+    console.log("tagssss",tags, tagId, itemId); //idbw0kk2n idiuv8x0i3e
+    if(tags.length < 1) return;
+    const res = tags.filter((item:Tag) => {
+      return item.id == tagId
+    })
+    if(res.length < 1) return;
+    const tagRes = res[0].values.filter((item:TagItem) => {
+      return item.id == itemId
+    })
+    if(tagRes.length < 1) return;
+    console.log('tagRes.name',tagRes[0].name);
+    return tagRes[0].name;
+  }
+
   return(
     <>
-      <Box pt={2} key={data.key} className="image-viewer-sidebar" sx={{
-        width: "26vw !important",color: theme.palette.text.primary,opacity:data.sidebar?1:0,
-        transform: data.sidebar?"translateY(0px)":"translateY(40px)",
-        transition: data.sidebar?"all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s .3s":"all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s"
+      <Box pt={2} className="image-viewer-sidebar" sx={{
+        width: "32vw !important",color: theme.palette.text.primary,opacity:sidebar?1:0,
+        transform: sidebar?"translateY(0px)":"translateY(40px)",
+        transition: sidebar?"all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s .3s":"all cubic-bezier(0.81, 0.07, 0.05, 1.04) .7s"
         }}>
           <Stack spacing={2} pb={5}>
-            <Description placeholder="Description" value={data.description} ref={descriptionRef} onChange={data.saveDescription}/>
-            <TextField type="number" label="Likes" value={data.likes} onChange={handleLikes} inputProps={{ min: 0 }}></TextField>
-            {render?Object.keys(data.tags).map((key, i)=>(
-              <div key={key}><>
-                <Autocomplete fullWidth disablePortal multiple
-                  renderInput={(params) => <TextField {...params} label={Object.keys(data.tags[i])[0]} />}
-                  defaultValue={data.currentTags[Object.keys(data.tags[i])[0]]}
-                  options={['The Godfather', 'Pulp Fiction']}
-                  onChange={(event, newValue: string[])=>updateValue(newValue,Object.keys(data.tags[i])[0])}
+            <Description placeholder="Description" value={description} ref={descriptionRef} onChange={saveDescription}/>
+            <TextField type="number" size="small" label="Likes" value={likes} onChange={handleLikes} inputProps={{ min: 0 }}></TextField>
+            {render?tags.map((tag:Tag, index:number)=>(
+              <div key={index}>
+                <Autocomplete fullWidth disablePortal multiple size="small"
+                  renderInput={(params) => <TextField {...params} label={tag.name} />}
+                  defaultValue={currentTags.map((item:string)=>getTagNameFromId(tag.id, item)).filter((el:unknown) => el !== undefined)}
+                  options={tag.values.map((item:any)=>item.name)}
+                  onChange={(event, newValue: string[])=>updateValue(newValue,index)}
                   filterOptions={(options, params:FilterOptionsState<string>) => {
                     const filtered = filter(options, params as FilterOptionsState<unknown>);
                     if (params.inputValue !== '') filtered.push(`${params.inputValue.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())}`);
 
                     return filtered as string[];
                   }}
-                  key={key+data.key}
+                  key={index}
                   freeSolo
                   />
-              </></div>
+              </div>
             ))
             :<>
-              {Object.keys(data.tags).map((key)=>(
+              {Object.keys(tags).map((key)=>(
                 <Skeleton variant="rectangular" key={key+"skeleton"} width={360} height={58} animation="wave" />
               ))}
             </>}
@@ -286,7 +309,7 @@ const TopBar = styled(Stack)(({ theme }) => (`
   transition: all .3s;
   z-index: 9;
   opacity: 0.3;
-  transform: translatey(-20px);
+  transform: translatey(-10px);
   transition-delay: .5s;
   background: transparent;
   backdrop-filter:blur(10px);
@@ -375,7 +398,7 @@ const Sidebar = styled(Card)(`
 const Description = styled("textarea")(({ theme }) => ({
   width: "100%", 
   fontFamily:"inherit", 
-  fontSize:"24px", 
+  fontSize:"17px", 
   backgroundColor: "transparent",
   border:"none", 
   borderRadius: "5px",

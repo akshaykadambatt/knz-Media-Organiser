@@ -5,7 +5,7 @@ import Main from '../components/Main'
 import { KmoContext } from '../components/context';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';  
-import { CircularProgress, Container, FormControlLabel, FormGroup, Switch } from '@mui/material';
+import { CircularProgress, Container, FormControlLabel, FormGroup, LinearProgress, Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/system/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -87,7 +87,7 @@ const darkTheme = responsiveFontSizes(createTheme({
     }
 }));
 const Home: NextPage = () => {
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
   const changeTheme = () => setIsDarkTheme(!isDarkTheme);
   const [folder, setFolder] = useState({} as FileSystemDirectoryHandle);
   const [dbHandle, setDbHandle] = useState({} as FileSystemFileHandle);
@@ -104,12 +104,12 @@ const Home: NextPage = () => {
     // let dir:string = path.shift() || "";
     if(cache[index]){
       if(cache[index][0]==null && full===true){
-        console.log("inside full=true and cache index 0 miss", cache[index]);
+        //console.log("inside full=true and cache index 0 miss", cache[index]);
         cache[index][0] = await getBlobRecursively(path,folderToLookIn,index)
-        console.log("inside full=true and cache index 0 miss", cache[index][0]);
+        //console.log("inside full=true and cache index 0 miss", cache[index][0]);
         await setCache(cache)
         return cache[index]
-      }else console.log("cache hit");
+      }else //console.log("cache hit");
       return cache[index]
     }else{
       let fullImage = await getBlobRecursively(path,folderToLookIn,index)
@@ -121,7 +121,7 @@ const Home: NextPage = () => {
     
   }
   const getBlobRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number, full: boolean = false) => {
-    console.log("cache miss",index, cache[index]);
+    //console.log("cache miss",index, cache[index]);
     let dir:string = path.shift() || "";
     if(path.length == 0){
       let fileHandle = await folderToLookIn.getFileHandle(dir, {})
@@ -134,7 +134,7 @@ const Home: NextPage = () => {
     }
   }
   const getDataThumb = async (fullImage:any) => {
-    let thumbSize = 50
+    let thumbSize = 150
     let img = await new Image()
     img.src = fullImage
     await img.decode();
@@ -175,6 +175,10 @@ const Home: NextPage = () => {
     }
   }
 
+  const getUniqueId = () => {
+    return 'id' + Math.random().toString(36).substring(5)
+  }
+
   return (
     <ThemeProvider theme={isDarkTheme ? darkTheme : lightTheme}>
       <CssBaseline />
@@ -183,6 +187,7 @@ const Home: NextPage = () => {
         <meta name="description" content="KMO" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <LinearProgress style={{position:"fixed", width: "100vw", zIndex:4}}/>
       <Container>
       <Typography variant="h1" pt={11} >K Media Organiser</Typography>
       <Typography>
@@ -208,7 +213,8 @@ const Home: NextPage = () => {
         saving, setSaving,
         cacheHandle, setCacheHandle,
         selectItems, setSelectItems,
-        selectedItems, setSelectedItems
+        selectedItems, setSelectedItems,
+        getUniqueId
         }}>
         <Main/>
       </KmoContext.Provider>

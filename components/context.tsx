@@ -27,6 +27,7 @@ export type KmoContextType = {
     setSelectItems: (Data: boolean) => void;
     selectedItems: any[];
     setSelectedItems: (Data: any[]) => void;
+    getUniqueId: () => string,
 }
 
 export const KmoContext = createContext<KmoContextType>({ 
@@ -54,5 +55,6 @@ export const KmoContext = createContext<KmoContextType>({
     setSelectedItems: data => console.warn('no db provider'),
     selectItems: false, 
     setSelectItems: data => console.warn('no db provider'),
+    getUniqueId: () => "",
 });
 export const useKmoContext = () => useContext(KmoContext);

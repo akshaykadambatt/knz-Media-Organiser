@@ -11,6 +11,11 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import { useKmoContext } from './context';
 import Stack from '@mui/material/Stack';
+import { IoIosAddCircleOutline, IoMdAdd } from 'react-icons/io';
+import { IoAddOutline } from 'react-icons/io5';
+import { MdOutlineDelete } from 'react-icons/md';
+import { AiOutlineDelete } from 'react-icons/ai';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -22,12 +27,6 @@ const style = {
   borderRadius: '6px',
   boxShadow: 24,p: 4,
 };
-
-interface Tag {
-  name: string,
-  type: string,
-  values: string[],
-}
 
 export default function AddTagsModal({open, setOpen}:any) {
   const { db, setDb } = useKmoContext();
@@ -55,6 +54,19 @@ export default function AddTagsModal({open, setOpen}:any) {
   //   }
   // ]
   
+  // [
+  //   {
+  //     name: "Album name",
+  //     id: "asdfasd",
+  //     items: ["path/to/file.jpg", "path/to/file.jpg", "path/to/file.jpg"]
+  //   },
+  //   {
+  //     name: "Album name",
+  //     id: "asdfasd",
+  //     items: ["path/to/file.jpg", "path/to/file.jpg", "path/to/file.jpg"]
+  //   }
+  // ]
+
   return (
     <div>
       <Modal open={open} onClose={handleClose} >
@@ -66,15 +78,15 @@ export default function AddTagsModal({open, setOpen}:any) {
           <Typography sx={{ mt: 3, mb:3 }} gutterBottom>
             Add new tags to help yourself organize the images.
           </Typography>
-          {JSON.stringify(count)}
+          {/* {JSON.stringify(count)} */}
           {count.map((item,index)=>(
             <Entry key={index} index={index} data={item} setCount={setCount} count={count} />
           ))}
           <Stack direction="row" spacing={2} sx={{marginTop: 3}}>
           <Button onClick={()=>{
             // setCount(Object.assign({[Object.entries(count).length]:""},count))
-            setCount([...count,{name: "",type: "",values: []}])
-          }} variant="contained" >Add New Tag</Button>
+            setCount([...count,{id: "", name: "",type: "",values: []}])
+          }} variant="contained" startIcon={<IoIosAddCircleOutline />}>Add New Tag</Button>
           <Button onClick={handleClose} variant="outlined" >Close</Button>
 
           </Stack>
@@ -92,7 +104,7 @@ interface IProps {
   setCount: (Data: Tag[]) => void
 }
 const Entry = ({index, data, count, setCount}:IProps) => {
-  const { db, setDb } = useKmoContext();
+  const { getUniqueId } = useKmoContext();
   const [name, setName] = useState( data.name || "");
   const [type, setType] = useState(data.type || "");
   const [deleteItem, setDeleteItem] = useState(false);
@@ -101,7 +113,7 @@ const Entry = ({index, data, count, setCount}:IProps) => {
   useEffect(() => nameRef.current?.focus(), [])
 
   useEffect(() => {
-    count[index] = {name: name,type: type,values: []}
+    count[index] = {id: getUniqueId(), name: name,type: type,values: [...count[index].values]}
     setCount(count)
   }, [name, type])
 
@@ -121,19 +133,24 @@ const Entry = ({index, data, count, setCount}:IProps) => {
     <div key={index}>
       <Grid container spacing={3} sx={{paddingTop: 2}}>
         <Grid item xs={5}>
-          <TextField label="Name" inputRef={nameRef} onChange={handleNameChange} defaultValue={name} variant="outlined" fullWidth />
+          <TextField label="Name" size="small" inputRef={nameRef} onChange={handleNameChange} defaultValue={name} variant="outlined" fullWidth />
         </Grid>
         <Grid item xs={5}>
           <FormControl fullWidth>
             <InputLabel id="demo-simple-select-label">Type</InputLabel>
-            <Select onChange={handleTypeChange} label="Age" value={type}>
+            <Select onChange={handleTypeChange} label="Age" value={type} size="small">
               <MenuItem value={"number"}>Number</MenuItem>
               <MenuItem value={"string"}>String</MenuItem>
             </Select>
           </FormControl>
         </Grid>
         <Grid item xs={2}>
-          <Button  color="warning" onClick = {()=>setDeleteItem(true)} variant="outlined" sx={{ height: "100%", width: "100%" }}>
+          <Button  
+            color="warning" 
+            startIcon={<AiOutlineDelete />}
+            onClick = {()=>setDeleteItem(true)} 
+            variant="outlined" 
+            sx={{ height: "100%", width: "100%" }}>
             Delete
           </Button>
         </Grid>

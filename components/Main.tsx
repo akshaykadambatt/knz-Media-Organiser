@@ -5,21 +5,18 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { CircularProgress, Container, FormControlLabel, FormGroup, Switch } from '@mui/material';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import { Autocomplete, Container, Grid, LinearProgress } from '@mui/material';
 import {ImageViewer} from "./ImageViewer"
 import AddTagsModal from "./AddTags"
-import { Skeleton } from "@mui/material";
 import { IoFilterSharp, IoAlbumsOutline, IoCloseOutline } from 'react-icons/io5';
 import { BsCheck2 } from 'react-icons/bs';
-import { IoIosSearch } from 'react-icons/io';
+import { AiOutlineSortAscending, AiOutlineSortDescending } from 'react-icons/ai';
+import { IoIosSearch, IoIosShuffle } from 'react-icons/io';
 import { MdOutlineSync, MdTag, MdRefresh, MdOutlineFolderOpen } from 'react-icons/md';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material';
-import finalPropsSelectorFactory from "react-redux/es/connect/selectorFactory";
 
 declare global {
     interface Window {
@@ -28,6 +25,16 @@ declare global {
         webkitStorageInfo:any;
         PERSISTENT:any;
         requestFileSystem:any;
+    }
+    interface Tag {
+      id: string,
+      name: string,
+      type: string,
+      values: string[],
+    }
+    interface TagItem {
+      id: string,
+      name: string
     }
 }
 
@@ -80,6 +87,7 @@ const Main = () => {
         });
     })
   }
+
   useEffect(() => {
     if(folder.name) getDbHandle(folder)
     return;
@@ -222,7 +230,14 @@ const Main = () => {
         </Typography>
       </>
       }
-      <code>{JSON.stringify(db.config)}</code>
+
+      {/* <Grid container>
+        {db?.config?.tags?.map((item: any,key: any)=>(
+          <Grid item key={key}>
+            <code><pre>{JSON.stringify(item,null,2)}</pre></code>
+          </Grid>
+        ))}
+      </Grid> */}
       </Container>
       <ButtonBar>
       <Stack spacing={2} sx={{paddingBlock:3, alignItems: "center"}} direction="row">
@@ -242,23 +257,40 @@ const Main = () => {
       }
       {showFilters &&
         <>
-          <TextField size="small" label="Search" variant="outlined" />
-          <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-            <InputLabel id="demo-select-small">Age</InputLabel>
-            <Select
-              labelId="demo-select-small"
-              id="demo-select-small"
-              label="Age"
-              value={10}
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value={10}>Ten</MenuItem>
-              <MenuItem value={20}>Twenty</MenuItem>
-              <MenuItem value={30}>Thirty</MenuItem>
-            </Select>
-          </FormControl>
+        <Grid container spacing={2}>
+          {db?.config?.tags?.map((tag:Tag, index:number)=>(
+              <Grid item xs={4} key={index}>
+                <Autocomplete size="small" fullWidth disablePortal multiple
+                  renderInput={(params) => <TextField {...params} label={tag.name} />}
+                  options={tag.values.map((item:any)=>item.name)}
+                  onChange={(event, newValue: string[])=>{
+                    // updateValue(newValue,index)
+                  }}
+                  key={index}
+                  freeSolo
+                  />
+              </Grid>
+            ))}
+            <Grid item xs={4}>
+              <TextField fullWidth size="small" label="Search" variant="outlined" />
+            </Grid>
+            <Grid item xs={4}>
+              <ToggleButtonGroup
+                color="primary"
+                exclusive sx={{height:"44px"}}
+              >
+                <ToggleButton value="asc">
+                  <AiOutlineSortAscending size={20} style={{marginRight:"7px"}} />ASC
+                </ToggleButton>
+                <ToggleButton value="desc">
+                  <AiOutlineSortDescending size={20} style={{marginRight:"7px"}} />DESC
+                </ToggleButton>
+                <ToggleButton value="rand">
+                  <IoIosShuffle size={20} style={{marginRight:"7px"}} />RAND
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Grid>
+          </Grid>
           <Button variant="contained" onClick={newAlbumStart} startIcon={<IoIosSearch />}> Search</Button>
           <Button onClick={hideFiltersSection} startIcon={<IoCloseOutline />}> Cancel</Button>
         </>
