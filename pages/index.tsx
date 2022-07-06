@@ -5,7 +5,7 @@ import Main from '../components/Main'
 import { KmoContext } from '../components/context';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';  
-import { CircularProgress, Container, FormControlLabel, FormGroup, LinearProgress, Switch } from '@mui/material';
+import { CircularProgress, Container, FormControlLabel, FormGroup, LinearProgress, Switch, Tooltip } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/system/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -189,10 +189,13 @@ const Home: NextPage = () => {
       </Head>
       <LinearProgress style={{position:"fixed", width: "100vw", zIndex:4}}/>
       <Container>
-      <Typography variant="h1" pt={11} >K Media Organiser</Typography>
+      <Typography variant="h1" pt={9} >K Media Organiser</Typography>
       <Typography>
         A configuration file will be created in the selected folder. Please do not 
-        remove the <code>db.json</code> file. No data is sent to the server from your computer, that is,
+        remove the&nbsp;
+        <Tooltip title="You can find this file in the root folder thats given access to KMO" arrow placement="top">
+           <code>db.json</code> 
+        </Tooltip> file. No data is sent to the server from your computer, that is,
         your images, files, directory structure, configuration files, file metadata, etc are 
         all maintained locally, securely. Keep in mind that actions like renaming, deletion, etc.
         will affect your real files and can be irriversible.

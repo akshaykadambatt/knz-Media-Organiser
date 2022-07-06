@@ -153,11 +153,11 @@ export const ImageViewer = (imageProps:any) => {
         <Stack direction="row" spacing={1}>
           <Chip 
             icon={(likes>0)? <BsHeartFill size={13} style={{marginLeft:"9px"}}/>:<BsHeart size={13} style={{marginLeft:"9px"}}/>} 
-            label="Like" 
+            label="Like"  color="primary"
             onClick={likeImage} 
           />
-          <Chip label="Open Sidebar" onClick={toggleSidebar}  />
-          <Chip label="Delete" onClick={deleteFile} />
+          <Chip label="Open Sidebar" color="primary" onClick={toggleSidebar}  />
+          <Chip label="Delete" color="error" onClick={deleteFile} />
           <Chip label="Close" onClick={close} />
         </Stack>
         </TopBar>

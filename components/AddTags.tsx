@@ -16,21 +16,14 @@ import { IoAddOutline } from 'react-icons/io5';
 import { MdOutlineDelete } from 'react-icons/md';
 import { AiOutlineDelete } from 'react-icons/ai';
 import LinearProgress from '@mui/material/LinearProgress';
-
-const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: "70vw",maxHeight: "90vh",
-  overflowY:"scroll",
-  bgcolor: 'background.paper',
-  borderRadius: '6px',
-  boxShadow: 24,p: 4,
-};
+import { styled } from '@mui/material/styles';
+import { useTheme } from '@mui/material';
+import { alpha, Autocomplete,createFilterOptions, Card, FilterOptionsState } from '@mui/material';
 
 export default function AddTagsModal({open, setOpen}:any) {
   const { db, setDb } = useKmoContext();
   const [count, setCount] = useState<Tag[]>(db.config.tags);
+  const theme = useTheme();
 
   const handleClose = () => {
     setOpen(false)
@@ -70,9 +63,9 @@ export default function AddTagsModal({open, setOpen}:any) {
   return (
     <div>
       <Modal open={open} onClose={handleClose} >
-        <Box sx={style} >
+        <Boxy sx={style} >
             <>
-          <Typography variant="h2" component="h2">
+          <Typography variant="h3" component="h3">
             Add new tags
           </Typography>
           <Typography sx={{ mt: 3, mb:3 }} gutterBottom>
@@ -91,7 +84,7 @@ export default function AddTagsModal({open, setOpen}:any) {
 
           </Stack>
           </>
-        </Box>
+        </Boxy>
       </Modal>
     </div>
   );
@@ -158,3 +151,18 @@ const Entry = ({index, data, count, setCount}:IProps) => {
     </div>
   :null);
 };
+
+const style = {
+  bgcolor: 'background.paper',
+  boxShadow: 24,p: 4,
+};
+
+const Boxy = styled(Box)(({ theme }) => (`
+  position: absolute;
+  top: 50%;left: 50%;transform: translate(-50%, -50%);width: 70vw;max-height: 90vh;
+  overflow-y:scroll;  
+  border-radius: 6px;
+  ::-webkit-scrollbar { 
+    display: none; 
+  }
+`))
