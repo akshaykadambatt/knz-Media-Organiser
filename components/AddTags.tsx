@@ -33,32 +33,6 @@ export default function AddTagsModal({open, setOpen}:any) {
     db.config.tags = count
     setDb(db)
   }, [count])
-  // Tag model:
-  // [
-  //   {
-  //     name: "Category",
-  //     kind: "string",
-  //     values: ["sl", "bl", "tl"]
-  //   },
-  //   {
-  //     name: "Category",
-  //     kind: "string",
-  //     values: ["sl", "bl", "tl"]
-  //   }
-  // ]
-  
-  // [
-  //   {
-  //     name: "Album name",
-  //     id: "asdfasd",
-  //     items: ["path/to/file.jpg", "path/to/file.jpg", "path/to/file.jpg"]
-  //   },
-  //   {
-  //     name: "Album name",
-  //     id: "asdfasd",
-  //     items: ["path/to/file.jpg", "path/to/file.jpg", "path/to/file.jpg"]
-  //   }
-  // ]
 
   return (
     <div>

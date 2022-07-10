@@ -9,7 +9,7 @@ import { CircularProgress, Container, FormControlLabel, FormGroup, LinearProgres
 import { styled } from '@mui/material/styles';
 import Box from '@mui/system/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-
+import { SiServerless } from "react-icons/si";
 const lightTheme = responsiveFontSizes(createTheme({
   palette: {
     mode: 'light',
@@ -187,7 +187,7 @@ const Home: NextPage = () => {
         <meta name="description" content="KMO" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <LinearProgress style={{position:"fixed", width: "100vw", zIndex:4}}/>
+      {/* <LinearProgress style={{position:"fixed", width: "100vw", zIndex:4}}/> */}
       <Container>
       <Typography variant="h1" pt={9} >K Media Organiser</Typography>
       <Typography>

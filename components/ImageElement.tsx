@@ -37,6 +37,8 @@ export const ImageElement = (imageProps:any) => {
   const checkItem = () => {
     if(imageProps.selectItems == false) return;
     setChecked(!checked)
+    imageProps.selectedItems.push([imageProps.path, folder, imageProps.file])
+    imageProps.setSelectedItems(imageProps.selectedItems)
     console.log(checked);
     
   }
@@ -54,7 +56,7 @@ export const ImageElement = (imageProps:any) => {
         className={`image-item-image ${imageProps.album? 'album-image-item':null}`} 
         width="800px"
         height="456.8px"/>
-        {imageProps.album? <><AlbumOne>s</AlbumOne><AlbumTwo>a</AlbumTwo></>:null}
+        {imageProps.album? <><AlbumOne style={{background:`url(${src})`}}></AlbumOne><AlbumTwo style={{background:`url(${src})`}}></AlbumTwo></>:null}
       </div>
       
     </div>
@@ -66,21 +68,23 @@ const AlbumOne = styled(Box)(({ theme }) => (`
   position: relative;
   height: 90%;
   width: 100%;
-  top:-91%;
+  top:-86%;
   background: ${theme.palette.mode=="light"? "#6c6c6c":"#626262"};
   z-index: -1;
   border-radius: 5px;
   transform-origin:center top;
   transform: scale(.9);
+  filter: brightness(0.5);
 `))
 const AlbumTwo = styled(Box)(({ theme }) => (`
   position: relative;
   height: 90%;
   width: 100%;
-  top:-187%;
+  top:-184%;
   background: ${theme.palette.mode=="light"? "#a3a3a3":"#464545"};
   z-index: -2;
   border-radius: 8px;
   transform: scale(.7);
   transform-origin:center top;
-`))
+  filter: brightness(0.3);
+  `))

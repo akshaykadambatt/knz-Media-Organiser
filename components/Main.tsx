@@ -39,7 +39,7 @@ declare global {
 }
 
 const Main = () => {
-  const [items, setItems] = useState({});
+  const [items, setItems] = useState([]);
   const [addTagsModal, setAddTagsModal] = useState(false);
   const { 
     folder, setFolder, 
@@ -53,13 +53,14 @@ const Main = () => {
     cacheHandle, setCacheHandle,
     syncWithFileSystem,
     selectedItems, setSelectedItems,
-    selectItems, setSelectItems
+    selectItems, setSelectItems,getUniqueId
   } = useKmoContext();
   const theme = useTheme();
   const [albumSettings, setAlbumSettings] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [hideMainButtons, setHideMainButtons] = useState(false);
   const main = React.createRef<HTMLInputElement>()
+  const albumName = React.createRef<HTMLInputElement>()
   //picker -> save folderDirHandle to state
   const openFolderDirHandle =async () => {
     const dirHandleVar:FileSystemDirectoryHandle = await window.showDirectoryPicker();
@@ -108,9 +109,18 @@ const Main = () => {
       config:{
         name: found? db.config.name : "My Gallery",
         folderName: dbHandle.name,
-        tags: found? db.config.tags : [],
         modifiedDate: + new Date(),
-        activeItem: 0
+        tags: found? db.config.tags : [],
+        albums: found? db.config.albums : [],
+        activeItem: 0,
+        runtime: { //this is the `runtime` temp object, no need to be saved.
+          filter: {
+            search: "",
+            tags: [],
+            order: ""
+          },
+          albums: [] //this is the `runtime` temp object, i.e. no need to be saved.
+        }
       },
       data:{
         filesData
@@ -151,6 +161,7 @@ const Main = () => {
               path: directory.join('/') + '/' + entry.name,
               modifiedDate: file.lastModified,
               tags: found? found.tags: [],
+              albums: found? found.albums: [],
               description: found? found.description: "",
               likes: found? found.likes: 0
             });
@@ -177,7 +188,7 @@ const Main = () => {
     return;
   }, [db?.config?.modifiedDate, cache])
   const createElements = async (db: Record<string, any>) => {
-    setItems({})
+    setItems([])
     await new Promise(r => setTimeout(r, 0));
     setItems(db.data.filesData)
   }
@@ -202,6 +213,22 @@ const Main = () => {
     setAlbumSettings(true)
     setHideMainButtons(true)
   }
+  const newAlbumSave = () => {
+    let data = {
+      id: getUniqueId(),
+      name: albumName.current?.value,
+      dateCreated: + new Date(),
+      items: selectedItems
+    }
+    selectedItems.map((value,key)=>{
+      db.data.filesData[value[2]].albums.push(data.id)
+    })
+    db.config.albums.push(data)
+    setDb(db)
+    setSelectItems(false)
+    setAlbumSettings(false)
+    setHideMainButtons(false)
+  }
   const cancelNewAlbumStart = () => {
     console.log('cancel new album start');
     setSelectItems(false)
@@ -215,6 +242,30 @@ const Main = () => {
   const hideFiltersSection = () => {
     setShowFilters(false)
     setHideMainButtons(false)
+  }
+  const manageAlbumEntry = (value:any, key:number) => {
+    /**
+     * Return values
+     * 0 not an album
+     * 1 is an album
+     * 2 already rendered album (hide this item)
+     */
+    if(value.albums.length>0){
+      for (let id of value.albums) {
+        if(!db.config.runtime.albums.includes(id)){
+          db.config.runtime.albums[key] = id
+          return 1
+        }else if(db.config.runtime.albums[key] == id){
+          return 1
+        }else if(db.config.runtime.albums.includes(id)){
+          console.log(db.config.runtime.albums.indexOf(id), 'indexof');
+          if(db.config.runtime.albums.indexOf(id) != key){
+            return 2;
+          }
+        }
+      }
+    }
+    return 0;
   }
   return (<>
       <Container>
@@ -230,7 +281,7 @@ const Main = () => {
         </Typography>
       </>
       }
-
+<code><pre>{JSON.stringify(db,null,2)}</pre></code>
       {/* <Grid container>
         {db?.config?.tags?.map((item: any,key: any)=>(
           <Grid item key={key}>
@@ -297,8 +348,9 @@ const Main = () => {
         }
       {albumSettings && 
       <>
-        <TextField size="small" label="Album Name"></TextField>
-        <Button variant="contained" onClick={newAlbumStart} startIcon={<BsCheck2 />}> Create Album</Button>
+        <TextField size="small" label="Album Name" inputRef={albumName}></TextField>
+        {JSON.stringify(selectedItems)}
+        <Button variant="contained" onClick={newAlbumSave} startIcon={<BsCheck2 />}> Create Album</Button>
         <Button onClick={cancelNewAlbumStart} startIcon={<IoCloseOutline />}> Cancel</Button>
       </>}
       </Stack>
@@ -307,21 +359,23 @@ const Main = () => {
       {addTagsModal&& <AddTagsModal open={addTagsModal} setOpen={setAddTagsModal}/>}
       <ImageViewer open={viewer} file={file} createElements={createElements}/>
       <div ref={main} className="imageItemWrapper" style={{marginBottom:"100px"}}>
-      {Object.entries(items).map(([key, value]: any) => (
+      {items.map((value:any,key:any) => {
+        let albumData = manageAlbumEntry(value, key)
+        if(albumData == 2) return;
+        return(
         <div key = {key} className = "imageItem">
-          {/* <code>{JSON.stringify(value)}</code> */}
           <ImageElement 
-          path = {value.path} 
-          file = {key} 
-          description = {value.description}
-          modifieddate = {value.tags.modifiedDate}
-          onClick = {()=>{if(selectItems==false){setViewer(true);setFile(key);}}}
-          album={0}
-          selectedItems={selectedItems} setSelectedItems={setSelectedItems}
-          selectItems={selectItems}
+            path = {value.path} 
+            file = {key} 
+            description = {value.description}
+            modifieddate = {value.tags.modifiedDate}
+            onClick = {()=>{if(selectItems==false){setViewer(true);setFile(key);}}}
+            album={albumData}
+            selectedItems={selectedItems} setSelectedItems={setSelectedItems}
+            selectItems={selectItems}
            />
         </div>
-      ))}
+      )})}
       </div>
   </Container>
   </>)
@@ -336,4 +390,5 @@ const ButtonBar = styled(Container)(({ theme }) => (`
   position: sticky;
   top:-5px;
   z-index:3;
+  margin-bottom:10px;
 `))
