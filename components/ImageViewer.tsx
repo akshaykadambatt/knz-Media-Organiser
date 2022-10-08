@@ -8,14 +8,17 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import { BsHeart, BsHeartFill } from "react-icons/bs";
+import { GrNext, GrPrevious } from "react-icons/gr";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import TextField from '@mui/material/TextField';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { alpha, Autocomplete,createFilterOptions, Card, FilterOptionsState } from '@mui/material';
+import { alpha, Autocomplete,createFilterOptions, Card, FilterOptionsState, Modal } from '@mui/material';
 import { useTheme } from '@mui/material';
 import Skeleton from '@mui/material/Skeleton';
+import SwipeableDrawer from '@mui/material/SwipeableDrawer';
+import React from 'react';
 
 const filter = createFilterOptions();
 
@@ -25,9 +28,10 @@ export const ImageViewer = (imageProps:any) => {
     getFileRecursively, 
     viewer, setViewer, 
     cache, setCache,
-    db, setDb,
     file, setFile
   } = useKmoContext();
+  const db = imageProps.db
+  const items = imageProps.items
   const theme = useTheme();
   const [sidebar, setSidebar] = useState(false);
   const [src, setSrc] = useState("");
@@ -43,13 +47,14 @@ export const ImageViewer = (imageProps:any) => {
   const [likes, setLikes] = useState(0);
   const NavigationLeftElem = createRef<HTMLButtonElement>()
   const NavigationRightElem = createRef<HTMLButtonElement>()
+  const ResetZoomElem = createRef<HTMLButtonElement>()
   const focusRef = createRef<HTMLDivElement>()
   useEffect(()=>{
     // console.log("prevKey",prevKey);
     // console.log("file",file, db.data?.filesData[file]?.path, db.data?.filesData);
     // console.log("nextKey",nextKey);
-    if(viewer && db.data.filesData[prevKey]){
-      let path = db.data.filesData[prevKey].path.split('/')
+    if(viewer && items[prevKey]){
+      let path = items[prevKey].path.split('/')
       path.shift()
       getFileRecursively(path, folder, prevKey).then((r: any[])=>setPrevSrc(r[1]))
     }else{
@@ -57,8 +62,8 @@ export const ImageViewer = (imageProps:any) => {
     }
   },[prevKey])
   useEffect(()=>{
-    if(viewer && db.data.filesData[nextKey]){
-      let path = db.data.filesData[nextKey].path.split('/')
+    if(viewer && items[nextKey]){
+      let path = items[nextKey].path.split('/')
       path.shift()
       getFileRecursively(path, folder,nextKey).then((r: any[])=>setNextSrc(r[1]))
     }else{
@@ -68,7 +73,7 @@ export const ImageViewer = (imageProps:any) => {
   useEffect(() => {
     if(viewer && db.data?.filesData[file] != undefined){
       focusRef.current?.focus()
-      let filesData = db.data.filesData[file]
+      let filesData = db.data?.filesData[file]
       setTags(db.config.tags)
       let path = filesData.path.split('/')
       path.shift()
@@ -85,7 +90,7 @@ export const ImageViewer = (imageProps:any) => {
   }, [viewer, file, updateViewer]);
   const saveTags = async (event: any) => {
     await setCurrentTags(event)
-    // db.data.filesData[file].tags = currentTags
+    // items[file].tags = currentTags
   }
   const close = () => {
     setViewer(false)
@@ -94,13 +99,15 @@ export const ImageViewer = (imageProps:any) => {
   const toggleSidebar = () => setSidebar(!sidebar)
   const prevItem = () => {
     if(+file != 0 && prevKey != -1)setFile(prevKey)
+    ResetZoomElem.current?.click()
   }
   const nextItem = () => {
-    if(+file < (db.data.filesData.length-1) && nextKey != -1) setFile(nextKey)
+    if(+file < (items.length-1) && nextKey != -1) setFile(nextKey)
+    ResetZoomElem.current?.click()
   }
   const saveDescription = (event: any) => {
     setDescription(event.target.value)
-    db.data.filesData[file].description = description
+    items[file].description = description
   }
   const keyDownHandler = (event: any) => {
     if(event.key === "ArrowLeft") NavigationLeftElem.current?.click()
@@ -116,11 +123,11 @@ export const ImageViewer = (imageProps:any) => {
   }
   useEffect(() => {
     if(viewer){
-      db.data.filesData[file].likes = likes;
+      items[file].likes = likes;
     }
   }, [viewer, likes]);
   const deleteFile = async () => {
-      let filesData = db.data.filesData[file]
+      let filesData = items[file]
       let path = filesData.path.split('/')
       path.shift()
       getFileAndDelete(path, folder)
@@ -141,11 +148,12 @@ export const ImageViewer = (imageProps:any) => {
     }
   }
   return (viewer 
-    ? <Card className="image-viewer" ref={focusRef} onKeyDown={keyDownHandler} tabIndex={0}
+    ? <Modal open={viewer} className="image-viewer" ref={focusRef} onKeyDown={keyDownHandler} tabIndex={0}
     sx={{
       background:`linear-gradient(0deg, ${theme.palette.background.default}, ${alpha(theme.palette.background.default,.841)})`
     }}
     >
+      <>
       <TopBar direction="row" justifyContent="space-between" spacing={1} px={3} pt={1.2} pb={1.2}>
         <Stack direction="row" spacing={1}>
           <Chip label="Close" onClick={close} />
@@ -161,13 +169,29 @@ export const ImageViewer = (imageProps:any) => {
           <Chip label="Close" onClick={close} />
         </Stack>
         </TopBar>
+        <SideNavigationsLeft onClick={prevItem}>
+          <GrPrevious/>
+        </SideNavigationsLeft>
+        <SideNavigationsRight onClick={nextItem}>
+          <GrNext/>
+        </SideNavigationsRight>
         <Grid container spacing={2} sx={{flexDirection: "row",flexWrap: "nowrap",alignItems: "center"}}>
           <Grid item xs={12} sx={{transition: "all cubic-bezier(0.81, 0.07, 0.05, 1.04)  0.9s",overflow:"hidden"}}>
             <ImageViewerWrapper className="image-viewer-image-holder">
-            <TransformWrapper onZoom={zoomStarted} onPanning={zoomStarted}>
-              <TransformComponent>
-                <img className="image-viewer-image" src={src}/>
-              </TransformComponent>
+            <TransformWrapper onZoom={zoomStarted} onPanning={zoomStarted} >
+            {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
+              <div >
+                <div className="tools" style={{display:"none"}}>
+                  {/* <button onClick={() => zoomIn()}>+</button>
+                  <button onClick={() => zoomOut()}>-</button> */}
+                  <button onClick={() => resetTransform()} ref={ResetZoomElem}>x</button>
+                </div>
+                <TransformComponent>
+                  <img className="image-viewer-image" src={src}/>
+                </TransformComponent>
+              </div>
+              
+            )}
             </TransformWrapper>
             <Sidebar sx={{
                 width:sidebar?"33.5vw":0,
@@ -191,6 +215,11 @@ export const ImageViewer = (imageProps:any) => {
           </Grid>
         </Grid>
         <BottomBar p={3}>
+          <SwipeableDrawer onClose={function (event: SyntheticEvent<{}, Event>): void {
+          throw new Error('Function not implemented.');
+        } } onOpen={function (event: SyntheticEvent<{}, Event>): void {
+          throw new Error('Function not implemented.');
+        } } open={false}>dsafgasd</SwipeableDrawer>
           {prevSrc && 
           <PrevImage onClick={prevItem} disableRipple ref={NavigationLeftElem} >
             <IoIosArrowBack size={70} style={{color:alpha(theme.palette.text.primary,.7)}}/>
@@ -205,7 +234,8 @@ export const ImageViewer = (imageProps:any) => {
           </NextImage>
           }
         </BottomBar>
-      </Card>
+        </>
+      </Modal>
     : null
   );
 };
@@ -219,8 +249,6 @@ export const SidebarContent = ({sidebar, description, tags, currentTags, likes, 
     setRender(false)
     setTimeout(() => setRender(true), 10)
     console.log("tags,currentTags",tags,currentTags);
-    
-    
   }, [currentTags]);
   useEffect(() => {
     descriptionRef.current!.style.height = "0px";
@@ -241,8 +269,6 @@ export const SidebarContent = ({sidebar, description, tags, currentTags, likes, 
       console.log('tags',tags, currentTags);
       setCurrentTags(currentTags)
     })
-    //console.log('consssssssssssool',getTagNameFromId("idbw0kk2n","id123vbfwm"));
-    
     // currentTags[index] = newInputValue
   }
   const handleLikes = (event:any) => {
@@ -308,11 +334,10 @@ const TopBar = styled(Stack)(({ theme }) => (`
   width: inherit;
   transition: all .3s;
   z-index: 9;
-  opacity: 0.3;
+  opacity: 0.1;
   transform: translatey(-10px);
   transition-delay: .5s;
   background: transparent;
-  backdrop-filter:blur(10px);
   :hover{
     background: ${alpha(theme.palette.background.default,0.8)};
     transform: translatey(0px);
@@ -325,18 +350,65 @@ const BottomBar = styled(Box)(({ theme }) => (`
   text-align:center;
   bottom:0;
   width: inherit;
+  z-index: 9;
   height:83px;
   background: transparent;
   transition: all .3s;
   opacity: 0.3;
   transform: translatey(30px);
-  backdrop-filter:blur(10px);
   transition-delay: .5s;
   :hover{
     background: ${alpha(theme.palette.background.default,0.8)};
     transform: translatey(0px);
     transition-delay: 0s;
     opacity: 1;
+  }
+`))
+const SideNavigations = styled(Box)(({theme}) => (`
+  height:100vh;
+  z-index:8;
+  width:100px;
+  position:absolute;
+  top:0;
+  cursor:pointer;
+  transition: all .3s;
+  display: flex;
+  align-items: center;
+  opacity:.3;
+  background:transparent;
+  :hover{
+    background:${alpha(theme.palette.background.default,0.8)};
+    opacity: 1;
+  }
+  polyline{
+    stroke:#fff;
+  }
+  svg{
+    transition: all .3s;
+  }
+`))
+const SideNavigationsLeft = styled(SideNavigations)(({theme}) => (`
+  left:0;
+  transform: translateX(-50px);
+  justify-content: flex-end;
+  padding-right: 20px;
+  :hover {
+    transform: translateX(0px);
+    svg{
+      transform:scale(1.5) translateX(-20px);
+    }
+  }
+`))
+const SideNavigationsRight = styled(SideNavigations)(({theme}) => (`
+  right:0;
+  transform: translateX(50px);
+  justify-content: flex-start;
+  padding-left: 20px;
+  :hover {
+    transform: translateX(0px);
+    svg{
+      transform:scale(1.5) translateX(20px);
+    }
   }
 `))
 

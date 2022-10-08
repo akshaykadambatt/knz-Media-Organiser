@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { Autocomplete, Container, Grid, LinearProgress } from '@mui/material';
+import { Autocomplete, Container, Grid, LinearProgress, Popover } from '@mui/material';
 import {ImageViewer} from "./ImageViewer"
 import AddTagsModal from "./AddTags"
 import { IoFilterSharp, IoAlbumsOutline, IoCloseOutline } from 'react-icons/io5';
@@ -281,7 +281,7 @@ const Main = () => {
         </Typography>
       </>
       }
-<code><pre>{JSON.stringify(db,null,2)}</pre></code>
+{/* <code><pre>{JSON.stringify(items,null,2)}</pre></code> */}
       {/* <Grid container>
         {db?.config?.tags?.map((item: any,key: any)=>(
           <Grid item key={key}>
@@ -357,7 +357,7 @@ const Main = () => {
       </ButtonBar>
       <Container>
       {addTagsModal&& <AddTagsModal open={addTagsModal} setOpen={setAddTagsModal}/>}
-      <ImageViewer open={viewer} file={file} createElements={createElements}/>
+      <ImageViewer open={viewer} db={db} items={items} file={file} createElements={createElements}/>
       <div ref={main} className="imageItemWrapper" style={{marginBottom:"100px"}}>
       {items.map((value:any,key:any) => {
         let albumData = manageAlbumEntry(value, key)
@@ -378,6 +378,19 @@ const Main = () => {
       )})}
       </div>
   </Container>
+  <Popover 
+  open={false}
+  anchorOrigin={{
+    vertical: 'center',
+    horizontal: 'center',
+  }}
+  transformOrigin={{
+    vertical: 'center',
+    horizontal: 'center',
+  }}
+>
+  The content of the Popover.
+</Popover>
   </>)
 }
 

@@ -146,7 +146,7 @@ const Home: NextPage = () => {
     oc.height = (img.height / img.width) * thumbSize;
     oc.width = thumbSize;
     octx?.drawImage(img, 0, 0, oc.width, oc.height);
-    return oc.toDataURL();
+    return oc.toDataURL('image/jpeg');
   }
   useEffect(() => {
     const savingTimer = setInterval(async ()=>{
