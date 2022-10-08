@@ -102,7 +102,16 @@ const Home: NextPage = () => {
   const [selectItems, setSelectItems] = useState(false);
   const getFileRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number, full: boolean = false) => {
     // let dir:string = path.shift() || "";
-    if(cache[index]){
+    const newDirectoryHandle = await folderToLookIn.getDirectoryHandle('.kmocache', {create: true});
+    const writeFile = async (name : string, content : File) => {
+      const newFileHandle = await newDirectoryHandle.getFileHandle(name? name:"name.jpeg", { create: true });
+      const writable = await newFileHandle.createWritable();
+      await writable.write(content ? content: "content");
+      await writable.close();
+    }
+    
+    let pathForNow = path[0];
+    if(cache[index] && false){
       if(cache[index][0]==null && full===true){
         //console.log("inside full=true and cache index 0 miss", cache[index]);
         cache[index][0] = await getBlobRecursively(path,folderToLookIn,index)
@@ -116,9 +125,16 @@ const Home: NextPage = () => {
       let data = await getDataThumb(fullImage);
       cache[index] = [fullImage,data]
       setCache(cache)
+      let fileContnets = await dataUrlToFile(data, 'name')
+      await writeFile(pathForNow,fileContnets)
       return cache[index]
     }
     
+  }
+  async function dataUrlToFile(dataUrl: string, fileName: string): Promise<File> {
+    const res: Response = await fetch(dataUrl);
+    const blob: Blob = await res.blob();
+    return new File([blob], fileName, { type: 'image/jpeg' });
   }
   const getBlobRecursively: any = async (path: string[], folderToLookIn: FileSystemDirectoryHandle, index: number, full: boolean = false) => {
     //console.log("cache miss",index, cache[index]);
@@ -134,7 +150,7 @@ const Home: NextPage = () => {
     }
   }
   const getDataThumb = async (fullImage:any) => {
-    let thumbSize = 150
+    let thumbSize = 83
     let img = await new Image()
     img.src = fullImage
     await img.decode();

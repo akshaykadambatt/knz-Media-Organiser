@@ -166,7 +166,10 @@ const Main = () => {
               likes: found? found.likes: 0
             });
           }
-        } else if (entry.kind == "directory") await folderHandler(entry);
+        } else if (entry.kind == "directory" && entry.name != '.kmocache') {
+          //.kmocache is the cache folder of KMO
+          await folderHandler(entry);
+        } 
       }
       setFilesFound(data.length)
       directory.pop()
