@@ -1,4 +1,4 @@
-# knz-Media-Organiser
+# KNz Media Organiser
 
 ## Getting Started
 ```bash
