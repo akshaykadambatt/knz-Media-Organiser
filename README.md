@@ -1,3 +1,5 @@
+# knz-Media-Organiser
+
 ## Getting Started
 ```bash
 npm run dev
